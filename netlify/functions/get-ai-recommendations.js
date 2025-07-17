@@ -1,45 +1,52 @@
-const axios = require('axios');
+// netlify/functions/get-ai-recommendations.js
 
-exports.handler = async (event, context) => {
+const fetch = require('node-fetch');
+
+exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method Not Allowed' })
-    };
+    return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  const { prompt } = JSON.parse(event.body);
-
-  if (!prompt) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'Prompt is required' })
-    };
-  }
-
+  let body;
   try {
-    const apiKey = process.env.GOOGLE_AI_API_KEY;
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-    
-    const response = await axios.post(apiUrl, {
-      contents: [{ role: 'user', parts: [{ text: prompt }] }]
-    }, {
-      headers: { 'Content-Type': 'application/json' }
-    });
+    body = JSON.parse(event.body);
+  } catch (err) {
+    console.error('Invalid JSON:', err);
+    return { statusCode: 400, body: 'Invalid JSON body' };
+  }
 
-    if (!response.data.candidates?.[0]?.content?.parts?.[0]) {
-      throw new Error('Invalid response structure from API');
-    }
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ text: response.data.candidates[0].content.parts[0].text })
-    };
-  } catch (error) {
-    console.error('AI recommendations failed:', error);
+  const apiKey = process.env.GOOGLE_API_KEY;
+  if (!apiKey) {
+    console.error('Missing GOOGLE_API_KEY');
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to fetch AI recommendations' })
+      body: JSON.stringify({ error: 'Server not configured with API key' })
+    };
+  }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+  try {
+    const apiRes = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: body.contents })
+    });
+
+    if (!apiRes.ok) {
+      const text = await apiRes.text();
+      console.error('Google API error:', apiRes.status, text);
+      return { statusCode: apiRes.status, body: text };
+    }
+
+    const json = await apiRes.json();
+    return { statusCode: 200, body: JSON.stringify(json) };
+
+  } catch (err) {
+    console.error('Fetch error:', err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: err.message || 'Internal error' })
     };
   }
 };
