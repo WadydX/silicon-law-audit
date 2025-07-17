@@ -55,8 +55,8 @@ exports.handler = async (event, context) => {
     }
 
     // Debugging: Test with hardcoded key (remove before production)
-    const testPublicKey = trimmedPublicKey; // Use env var
-    // const testPublicKey = 'WA50Mk7YHTgs6jkRU'; // Uncomment to test hardcoded, then remove
+   // const testPublicKey = trimmedPublicKey; // Use env var
+    const testPublicKey = 'WA50Mk7YHTgs6jkRU'; // Uncomment to test hardcoded, then remove
 
     console.log('Using publicKey for send, length:', trimmedPublicKey.length);
     const firmParams = {
