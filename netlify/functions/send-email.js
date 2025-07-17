@@ -5,18 +5,23 @@ exports.handler = async (event, context) => {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
-  // Parse the body directly from event.body (string or Buffer)
-  const body = typeof event.body === 'string' ? event.body : await new Promise((resolve) => resolve(event.body.toString()));
-  const formData = new URLSearchParams(body);
-  const params = {
-    user_name: formData.get('user_name'),
-    user_email: formData.get('user_email'),
-    email: formData.get('email'),
-    company_name: formData.get('company_name'),
-    phone_number: formData.get('phone_number') || '',
-    compliance_score: parseInt(formData.get('compliance_score'), 10) || 0,
-    full_summary: formData.get('full_summary')
-  };
+  // Parse JSON body
+  let params;
+  try {
+    const body = typeof event.body === 'string' ? JSON.parse(event.body) : {};
+    params = {
+      user_name: body.user_name || null,
+      user_email: body.user_email || null,
+      email: body.email || null,
+      company_name: body.company_name || null,
+      phone_number: body.phone_number || '',
+      compliance_score: parseInt(body.compliance_score, 10) || 0,
+      full_summary: body.full_summary || null
+    };
+  } catch (error) {
+    console.error('Failed to parse JSON body:', error);
+    return { statusCode: 400, body: JSON.stringify({ error: 'Invalid request body' }) };
+  }
 
   console.log('Received params:', params);
 
