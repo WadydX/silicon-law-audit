@@ -54,23 +54,24 @@ exports.handler = async (event, context) => {
       full_summary
     };
 
-    const clientParams = { ...firmParams };
-
-    console.log('Sending firm email with params:', firmParams);
-    await send({
+    console.log('Attempting to send firm email with params:', firmParams);
+    const firmResponse = await send({
       service_id: serviceId,
       template_id: firmTemplateId,
       user_id: publicKey,
       template_params: firmParams
     });
+    console.log('Firm email response:', firmResponse);
 
-    console.log('Sending client email with params:', clientParams);
-    await send({
+    const clientParams = { ...firmParams };
+    console.log('Attempting to send client email with params:', clientParams);
+    const clientResponse = await send({
       service_id: serviceId,
       template_id: clientTemplateId,
       user_id: publicKey,
       template_params: clientParams
     });
+    console.log('Client email response:', clientResponse);
 
     console.log('Emails sent successfully');
     return {
@@ -79,9 +80,10 @@ exports.handler = async (event, context) => {
     };
   } catch (error) {
     console.error('Email sending failed:', {
-      message: error.message,
-      stack: error.stack,
-      code: error.code
+      error: error,
+      message: error?.message || 'No message',
+      stack: error?.stack || 'No stack',
+      code: error?.code || 'No code'
     });
     return {
       statusCode: 500,
