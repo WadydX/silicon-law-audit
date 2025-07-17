@@ -1,9 +1,9 @@
 // netlify/functions/send-email.js
 
-// 1. Import & initialize EmailJS SDK
+// 1️⃣ Import & initialize EmailJS SDK
 const emailjs = require('@emailjs/nodejs');
 
-// Load and trim your EmailJS keys from environment
+// Pull your keys out of environment vars and trim whitespace
 const PUBLIC_KEY  = process.env.EMAILJS_PUBLIC_KEY?.trim();
 const PRIVATE_KEY = process.env.EMAILJS_PRIVATE_KEY?.trim();
 
@@ -14,30 +14,30 @@ emailjs.init({
 });
 
 exports.handler = async (event) => {
-  // Only allow POST
+  // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
-      headers: { 'Allow': 'POST' },
+      headers: { Allow: 'POST' },
       body: JSON.stringify({ error: 'Method Not Allowed' })
     };
   }
 
-  // 2. Parse JSON body
+  // 2️⃣ Parse the incoming JSON body
   let body;
   try {
     body = typeof event.body === 'string'
       ? JSON.parse(event.body)
       : event.body;
   } catch (err) {
-    console.error('Failed to parse JSON body:', err);
+    console.error('Invalid JSON body:', err);
     return {
       statusCode: 400,
       body: JSON.stringify({ error: 'Invalid JSON body' })
     };
   }
 
-  // 3. Build and validate parameters
+  // 3️⃣ Build & validate template parameters
   const params = {
     user_name:        body.user_name,
     user_email:       body.user_email,
@@ -60,22 +60,14 @@ exports.handler = async (event) => {
     };
   }
 
-  // 4. Pull template IDs from env
-  const serviceId      = process.env.EMAILJS_SERVICE_ID;
-  const firmTplId      = process.env.EMAILJS_FIRM_TEMPLATE_ID;
-  const clientTplId    = process.env.EMAILJS_CLIENT_TEMPLATE_ID;
+  // 4️⃣ Grab your EmailJS IDs from env vars
+  const serviceId   = process.env.EMAILJS_SERVICE_ID;
+  const firmTplId   = process.env.EMAILJS_FIRM_TEMPLATE_ID;
+  const clientTplId = process.env.EMAILJS_CLIENT_TEMPLATE_ID;
 
-  if (
-    !serviceId ||
-    !firmTplId ||
-    !clientTplId ||
-    !PUBLIC_KEY
-  ) {
+  if (!serviceId || !firmTplId || !clientTplId || !PUBLIC_KEY) {
     console.error('EmailJS config missing:', {
-      serviceId,
-      firmTplId,
-      clientTplId,
-      publicKeyPresent: Boolean(PUBLIC_KEY)
+      serviceId, firmTplId, clientTplId, publicKeyPresent: Boolean(PUBLIC_KEY)
     });
     return {
       statusCode: 500,
@@ -84,7 +76,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    // 5. Send audit summary to the firm
+    // 5️⃣ Send the audit summary to the firm
     console.log('Sending firm email with params:', params);
     const firmRes = await emailjs.send(
       serviceId,
@@ -93,28 +85,25 @@ exports.handler = async (event) => {
     );
     console.log('Firm email response:', firmRes);
 
-    // 6. Send audit results to the client
-    //    Must include the recipient variable your EmailJS template expects
-    const clientParams = {
-      ...params,
-      to_email: params.user_email
-    };
-    console.log('Sending client email with params:', clientParams);
+    // 6️⃣ Send the audit results back to the client
+    //     We *don’t* inject a separate `to_email` here—your template should
+    //     have its “To” field set to use {{user_email}} :contentReference[oaicite:1]{index=1}
+    console.log('Sending client email with params:', params);
     const clientRes = await emailjs.send(
       serviceId,
       clientTplId,
-      clientParams
+      params
     );
     console.log('Client email response:', clientRes);
 
-    // 7. Success response
+    // 7️⃣ Return success
     return {
       statusCode: 200,
       body: JSON.stringify({ message: 'Both emails sent successfully' })
     };
 
   } catch (err) {
-    // 8. Error handling
+    // 8️⃣ Error handling
     console.error('Email sending failed:', err);
     return {
       statusCode: 500,
