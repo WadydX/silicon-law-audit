@@ -101,6 +101,13 @@
                         </div>
                         <div id="ai-content"></div>
                     </div>
+                      <div class="mt-6 text-center">
+    <a href="mailto:info@silicon.law"
+       class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">
+      Schedule a Consultation
+    </a>
+  </div>
+</div>
                 </div>
 
                 <button id="restart-btn" class="mt-8 text-indigo-600 hover:underline">Start Over</button>
@@ -526,9 +533,6 @@ You are a helpful legal tech assistant for a law firm named 'Silicon Law'. A pot
 Based on their answers, do the following:
 1. Provide a brief, actionable **Top 3 Legal Risks** summary using an HTML <ul> (with <li> items).
 2. Provide **Next Steps** in another <ul>.
-3. Then include this **Disclaimer** in a <p> block:
-   <strong>Disclaimer:</strong> This assessment is AI-generated, is for informational purposes only and does not constitute legal advice, nor does it create a solicitor-client relationship. While it offers a general overview of potential legal issues based on your input, it's not a substitute for personalised legal counsel from a qualified solicitor, as laws are complex and vary by jurisdiction. The accuracy of the assessment depends on the information you provide, and it doesn't guarantee any legal outcomes. If potential legal issues are identified, we strongly recommend seeking prompt legal advice, as delaying can impact your rights.<br>
-   Your personal data will be held by Silicon Law Ltd in accordance with our privacy policy available at: <a href="https://www.silicon.law/privacy-policy">www.silicon.law/privacy-policy</a>
 
 4. Then add a **Schedule a Consultation** section (use <h4> for the heading and <ul> for bullets):
    <h4>Schedule a Consultation</h4>
@@ -563,7 +567,12 @@ ${promptSummary}
     // strip any fences or stray Subject lines (just in case)
     raw = raw.replace(/```(?:html)?/g, '').replace(/^Subject:.*\n/i, '').trim();
 
-    this.aiContent.innerHTML = raw;
+this.aiContent.innerHTML = `
+  <h3 class="text-xl font-semibold mb-4">
+    Your AI-Powered Summary & Recommendations
+  </h3>
+  ${raw}
+`;
   } catch (err) {
     console.error("Error fetching AI recommendations:", err);
     this.aiContent.innerHTML =
@@ -652,5 +661,18 @@ submitLead() {
         app.init();
     });
     </script>
+      <!-- FOOTER DISCLAIMER -->
+  <footer class="mt-12 text-center text-sm text-gray-500 px-4">
+    <p>
+      This assessment is for informational purposes only and does not constitute legal advice, nor does it create a solicitor-client relationship.
+      If legal issues are identified, we strongly recommend seeking prompt legal advice.
+    </p>
+    <p class="mt-2">
+      Your personal data will be held by Silicon Law Ltd in accordance with our
+      <a href="https://www.silicon.law/privacy-policy" class="underline">privacy policy</a>.
+    </p>
+  </footer>
+</body>
+
 </body>
 </html>
