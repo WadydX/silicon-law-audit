@@ -539,35 +539,37 @@
                 }
             },
             
-            submitLead() {
-                const payload = {
-                    user_name: `${this.answers.firstName.answer} ${this.answers.lastName.answer}`,
-                    user_email: this.answers.email.answer,
-                    email: this.answers.email.answer,
-                    company_name: this.answers.companyName.answer,
-                    phone_number: this.answers.phone.answer || '',
-                    compliance_score: this.calculateScore(),
-                    full_summary: Object.entries(this.answers).map(([key, value]) => `${value.question}: ${Array.isArray(value.answer) ? value.answer.join(', ') : value.answer}`).join('\n')
-                };
+submitLead() {
+  const payload = {
+    user_name: `${this.answers.firstName.answer} ${this.answers.lastName.answer}`,
+    user_email: this.answers.email.answer,
+    email: this.answers.email.answer,
+    company_name: this.answers.companyName.answer,
+    phone_number: this.answers.phone.answer || '',
+    compliance_score: this.calculateScore(),
+    full_summary: Object.entries(this.answers)
+      .map(([k, v]) => `${v.question}: ${Array.isArray(v.answer) ? v.answer.join(', ') : v.answer}`)
+      .join('\n')
+  };
 
-                fetch('/.netlify/functions/send-email', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message && data.message.includes('Emails sent')) {
-                        this.showMessage('Emails sent successfully!', 'success');
-                    } else {
-                        this.showMessage('Failed to send emails. Please try again.', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error submitting lead:', error);
-                    this.showMessage('Could not send emails. Please try again later.', 'error');
-                });
-            },
+  fetch('/.netlify/functions/send-email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(response => {
+    if (response.ok) {
+      this.showMessage('Emails sent successfully!', 'success');
+    } else {
+      this.showMessage('Failed to send emails. Please try again.', 'error');
+    }
+    return response.json().catch(() => ({}));
+  })
+  .catch(error => {
+    console.error('Error submitting lead:', error);
+    this.showMessage('Could not send emails. Please try again later.', 'error');
+  });
+},
 
             showMessage(message, type = 'error') {
                 this.messageText.textContent = message;
