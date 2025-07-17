@@ -506,37 +506,52 @@
             },
 
             async getAiRecommendations() {
-                this.getAiRecommendationsBtn.classList.add('hidden');
-                this.aiRecommendationsContainer.classList.remove('hidden');
-                this.aiLoader.classList.remove('hidden');
-                this.aiContent.classList.add('hidden');
-                let promptSummary = "The user's audit answers are as follows:\n";
-                for (const key in this.answers) {
-                    const answerData = this.answers[key];
-                    const answerText = Array.isArray(answerData.answer) ? answerData.answer.join(', ') : answerData.answer;
-                    if (answerText) promptSummary += `- ${answerData.question}: ${answerText}\n`;
-                }
-                const prompt = `You are a helpful legal tech assistant for a law firm named 'Silicon Law'. A potential client has just completed a legal compliance audit. Their final compliance score is ${this.calculateScore()}%. Based on their following answers, provide a brief, actionable summary of their top 3 legal risks and suggest concrete next steps. Frame the advice as helpful guidance, not as official legal advice. The tone should be professional, encouraging, and clear. Format the output as simple HTML using h4 for headings, ul and li for lists, and p for paragraphs. Do not wrap the entire response in a markdown block.\n\n${promptSummary}\n\nPlease provide the analysis now.`;
-                try {
-                    const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
-                    const apiKey = ""; // Replace with your Google API key or move to environment variable
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                    if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
-                    const result = await response.json();
-                    if (result.candidates?.[0]?.content?.parts?.[0]) {
-                        this.aiContent.innerHTML = result.candidates[0].content.parts[0].text;
-                    } else {
-                        throw new Error("Invalid response structure from API.");
-                    }
-                } catch (error) {
-                    console.error("Error fetching AI recommendations:", error);
-                    this.aiContent.innerHTML = `<p class="text-red-500">Sorry, we couldn't generate recommendations at this time. Please try again later.</p>`;
-                } finally {
-                    this.aiLoader.classList.add('hidden');
-                    this.aiContent.classList.remove('hidden');
-                }
-            },
+  this.getAiRecommendationsBtn.classList.add('hidden');
+  this.aiRecommendationsContainer.classList.remove('hidden');
+  this.aiLoader.classList.remove('hidden');
+  this.aiContent.classList.add('hidden');
+
+  // Build the prompt summary exactly as before...
+  let promptSummary = "The user's audit answers are as follows:\n";
+  for (const key in this.answers) {
+    const answerData = this.answers[key];
+    const answerText = Array.isArray(answerData.answer)
+      ? answerData.answer.join(', ')
+      : answerData.answer;
+    if (answerText) promptSummary += `- ${answerData.question}: ${answerText}\n`;
+  }
+
+  const prompt = `You are a helpful legal tech assistant for a law firm named 'Silicon Law'. A potential client has just completed a legal compliance audit. Their final compliance score is ${this.calculateScore()}%. Based on their following answers, provide a brief, actionable summary of their top 3 legal risks and suggest concrete next steps. Frame the advice as helpful guidance, not as official legal advice. The tone should be professional, encouraging, and clear. Format the output as simple HTML using h4 for headings, ul and li for lists, and p for paragraphs. Do not wrap the entire response in a markdown block.\n\n${promptSummary}\n\nPlease provide the analysis now.`;
+
+  try {
+    // Call your new Netlify Function
+    const res = await fetch('/.netlify/functions/get-ai-recommendations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: prompt }] }]
+      })
+    });
+
+    if (!res.ok) {
+      throw new Error(`Server error ${res.status}`);
+    }
+
+    const result = await res.json();
+    const content = result.candidates?.[0]?.content?.parts?.[0];
+    if (!content) throw new Error('No content returned');
+
+    this.aiContent.innerHTML = content;
+
+  } catch (err) {
+    console.error("Error fetching AI recommendations:", err);
+    this.aiContent.innerHTML = `<p class="text-red-500">Sorry, we couldn't generate recommendations at this time. Please try again later.</p>`;
+  } finally {
+    this.aiLoader.classList.add('hidden');
+    this.aiContent.classList.remove('hidden');
+  }
+},
+
             
 submitLead() {
   const payload = {
