@@ -5,7 +5,6 @@ exports.handler = async (event, context) => {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
-  // Parse JSON body
   let params;
   try {
     const body = typeof event.body === 'string' ? JSON.parse(event.body) : {};
@@ -42,12 +41,12 @@ exports.handler = async (event, context) => {
 
   try {
     const trimmedPublicKey = publicKey.trim();
-    console.log('Trimmed publicKey value (last 2 chars masked):', `${trimmedPublicKey.slice(0, -2)}XX`);
+    console.log('Trimmed publicKey value (full for debug):', trimmedPublicKey);
 
     const firmResponse = await send({
       service_id: serviceId,
       template_id: firmTemplateId,
-      user_id: trimmedPublicKey,
+      user_id: trimmedPublicKey, // Using publicKey as user_id
       template_params: params
     });
     console.log('Firm email response:', firmResponse);
@@ -67,6 +66,6 @@ exports.handler = async (event, context) => {
     return { statusCode: 200, body: JSON.stringify({ message: 'Emails sent successfully' }) };
   } catch (error) {
     console.error('Email sending failed:', { error, message: error.message });
-    return { statusCode: 500, body: JSON.stringify({ error: 'Could not send emails' }) };
+    return { statusCode: 500, body: JSON.stringify({ error: error.message || 'Could not send emails' }) };
   }
 };
