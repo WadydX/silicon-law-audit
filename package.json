@@ -1,14 +1,13 @@
 {
   "name": "silicon-law-audit",
   "version": "1.0.0",
-  "description": "",
+  "description": "Legal Compliance Audit application",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
     "@emailjs/nodejs": "^4.1.0",
-    "axios": "^1.7.2",
-    "node-fetch": "^2.6.7"
+    "axios": "^1.7.2"
   }
 }
