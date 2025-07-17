@@ -74,9 +74,14 @@ exports.handler = async (event, context) => {
         template_params: firmParams
       })
     });
-    const firmText = await firmResponse.text(); // Log raw text first
+    const firmText = await firmResponse.text(); // Log raw text
     console.log('Firm email raw response:', firmText);
-    const firmResult = await firmResponse.json(); // Then parse
+    let firmResult;
+    try {
+      firmResult = JSON.parse(firmText); // Manually parse text to JSON
+    } catch (parseError) {
+      throw new Error(`Failed to parse firm response: ${parseError.message} - Raw: ${firmText}`);
+    }
     console.log('Firm email response:', firmResult);
 
     const clientParams = { ...firmParams };
@@ -92,7 +97,12 @@ exports.handler = async (event, context) => {
     });
     const clientText = await clientResponse.text();
     console.log('Client email raw response:', clientText);
-    const clientResult = await clientResponse.json();
+    let clientResult;
+    try {
+      clientResult = JSON.parse(clientText);
+    } catch (parseError) {
+      throw new Error(`Failed to parse client response: ${parseError.message} - Raw: ${clientText}`);
+    }
     console.log('Client email response:', clientResult);
 
     if (!firmResult.success || !clientResult.success) {
