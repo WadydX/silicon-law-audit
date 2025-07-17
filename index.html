@@ -505,50 +505,65 @@
                 }
             },
 
-            async getAiRecommendations() {
+async getAiRecommendations() {
   this.getAiRecommendationsBtn.classList.add('hidden');
   this.aiRecommendationsContainer.classList.remove('hidden');
   this.aiLoader.classList.remove('hidden');
   this.aiContent.classList.add('hidden');
 
-  // 1) Build the prompt as before
+  // Build the user’s answers summary
   let promptSummary = "The user's audit answers are as follows:\n";
   for (const key in this.answers) {
-    const answerData = this.answers[key];
-    const answerText = Array.isArray(answerData.answer)
-      ? answerData.answer.join(', ')
-      : answerData.answer;
-    if (answerText) promptSummary += `- ${answerData.question}: ${answerText}\n`;
+    const a = this.answers[key];
+    const txt = Array.isArray(a.answer) ? a.answer.join(', ') : a.answer;
+    if (txt) promptSummary += `- ${a.question}: ${txt}\n`;
   }
 
-  const prompt = `You are a helpful legal tech assistant for a law firm named 'Silicon Law'. A potential client has just completed a legal compliance audit. Their final compliance score is ${this.calculateScore()}%. Based on their following answers, provide a brief, actionable summary of their top 3 legal risks and suggest concrete next steps. Frame the advice as helpful guidance, not as official legal advice. The tone should be professional, encouraging, and clear. Format the output as simple HTML using h4 for headings, ul and li for lists, and p for paragraphs. Do not include any “Subject:” line or markdown fences.`;
+  // ✨ NEW PROMPT ✨
+  const prompt = `
+You are a helpful legal tech assistant for a law firm named 'Silicon Law'. A potential client has just completed a legal compliance audit. Their final compliance score is ${this.calculateScore()}%.
+
+Based on their answers, do the following:
+1. Provide a brief, actionable **Top 3 Legal Risks** summary using an HTML <ul> (with <li> items).
+2. Provide **Next Steps** in another <ul>.
+3. Then include this **Disclaimer** in a <p> block:
+   <strong>Disclaimer:</strong> This assessment is AI-generated, is for informational purposes only and does not constitute legal advice, nor does it create a solicitor-client relationship. While it offers a general overview of potential legal issues based on your input, it's not a substitute for personalised legal counsel from a qualified solicitor, as laws are complex and vary by jurisdiction. The accuracy of the assessment depends on the information you provide, and it doesn't guarantee any legal outcomes. If potential legal issues are identified, we strongly recommend seeking prompt legal advice, as delaying can impact your rights.<br>
+   Your personal data will be held by Silicon Law Ltd in accordance with our privacy policy available at: <a href="https://www.silicon.law/privacy-policy">www.silicon.law/privacy-policy</a>
+
+4. Then add a **Schedule a Consultation** section (use <h4> for the heading and <ul> for bullets):
+   <h4>Schedule a Consultation</h4>
+   <ul>
+     <li>Let's discuss these findings in detail and tailor a compliance program to your specific needs.</li>
+     <li>Focus on Quick Wins: We can help you implement basic data security measures, update standard contract templates, and review key employment policies to address immediate gaps.</li>
+     <li>Prioritize Remediation: We'll work with you to create a phased plan to address compliance gaps, prioritizing those that pose the greatest legal and financial risk.</li>
+   </ul>
+
+5. Finally, close with:
+   <p>We understand that navigating legal compliance can be complex. Silicon Law is here to provide the guidance and support you need. We're confident that with a focused approach, you can significantly improve your compliance posture and protect your business.</p>
+   <p>Best Regards,</p>
+   <p>The Silicon Law Team</p>
+
+Do **not** wrap your response in markdown fences or include a separate “Subject:” line. Only return the HTML body.
+  
+${promptSummary}
+  `;
 
   try {
-    // 2) Call your Netlify Function
     const res = await fetch('/.netlify/functions/get-ai-recommendations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }]
-      })
+      body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }] })
     });
-
     if (!res.ok) throw new Error(`Server error ${res.status}`);
     const result = await res.json();
 
-    // 3) Extract the first part (should be an object with .text)
     const part = result.candidates?.[0]?.content?.parts?.[0] || '';
-    // If it's an object, grab its .text; otherwise assume it's already a string
+    // extract text if object, else use string
     let raw = typeof part === 'string' ? part : part.text || '';
+    // strip any fences or stray Subject lines (just in case)
+    raw = raw.replace(/```(?:html)?/g, '').replace(/^Subject:.*\n/i, '').trim();
 
-    // 4) Strip out any ``` fences and any leading "Subject:" line
-    raw = raw.replace(/```(?:html)?/g, '');
-    raw = raw.replace(/^Subject:.*\n/i, '');
-    raw = raw.trim();
-
-    // 5) Insert the cleaned HTML
     this.aiContent.innerHTML = raw;
-
   } catch (err) {
     console.error("Error fetching AI recommendations:", err);
     this.aiContent.innerHTML =
