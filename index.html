@@ -195,7 +195,7 @@
                 
                 const detailQuestions = auditConfig.questions.filter(q => q.section === 'Your Details');
                 const detailsScreen = document.createElement('div');
-                detailsScreen.id = question-0;
+                detailsScreen.id = `question-0`;
                 detailsScreen.className = 'form-screen';
                 detailsScreen.innerHTML = this.getDetailsScreenHTML(detailQuestions);
                 this.formContainer.appendChild(detailsScreen);
@@ -203,7 +203,7 @@
                 const otherQuestions = auditConfig.questions.filter(q => q.section !== 'Your Details');
                 otherQuestions.forEach((q, index) => {
                     const screen = document.createElement('div');
-                    screen.id = question-${index + 1};
+                    screen.id = `question-${index + 1}`;
                     screen.className = 'form-screen hidden';
                     screen.innerHTML = this.getQuestionHTML(q, index + 1);
                     this.formContainer.appendChild(screen);
@@ -213,15 +213,15 @@
             getDetailsScreenHTML(detailQuestions) {
                 const optionsHTML = detailQuestions.map(q => {
                     const requiredIndicator = q.required ? '<span class="text-red-500 ml-1">*</span>' : '';
-                    return 
+                    return `
                         <div>
                             <label for="q_${q.id}" class="block text-sm font-medium text-gray-700 mb-1">${q.text}${requiredIndicator}</label>
                             <input type="${q.type}" id="q_${q.id}" name="q_${q.id}" placeholder="${q.text}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         </div>
-                    ;
+                    `;
                 }).join('');
 
-                return 
+                return `
                     <div class="text-center">
                         <p class="text-sm font-semibold text-indigo-600 mb-2">Your Details</p>
                         <h3 class="text-xl md:text-2xl font-semibold mb-6">Let's start with some basic information</h3>
@@ -230,42 +230,42 @@
                     <div class="flex justify-end mt-8">
                         <button data-action="next" data-index="0" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">Next</button>
                     </div>
-                ;
+                `;
             },
 
             getQuestionHTML(q, index) {
                 let optionsHTML = '';
-                const inputName = q_${q.id};
+                const inputName = `q_${q.id}`;
                 const requiredIndicator = q.required ? '<span class="text-red-500 ml-1">*</span>' : '';
 
                 switch (q.type) {
                     case 'radio':
-                        optionsHTML = q.options.map(opt => <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500"><input type="radio" name="${inputName}" value="${opt.text}" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"><span class="ml-3 text-gray-700">${opt.text}</span></label>).join('');
+                        optionsHTML = q.options.map(opt => `<label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500"><input type="radio" name="${inputName}" value="${opt.text}" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"><span class="ml-3 text-gray-700">${opt.text}</span></label>`).join('');
                         break;
                     case 'checkbox':
-                        optionsHTML = q.options.map(opt => <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500"><input type="checkbox" name="${inputName}" value="${opt.text}" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"><span class="ml-3 text-gray-700">${opt.text}</span></label>).join('');
+                        optionsHTML = q.options.map(opt => `<label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500"><input type="checkbox" name="${inputName}" value="${opt.text}" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"><span class="ml-3 text-gray-700">${opt.text}</span></label>`).join('');
                         break;
                     case 'select':
-                        optionsHTML = <select name="${inputName}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">${q.options.map(opt => <option value="${opt.text}">${opt.text}</option>).join('')}</select>;
+                        optionsHTML = `<select name="${inputName}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">${q.options.map(opt => `<option value="${opt.text}">${opt.text}</option>`).join('')}</select>`;
                         break;
                     case 'textarea':
-                        optionsHTML = <textarea name="${inputName}" rows="4" placeholder="Please share further details..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>;
+                        optionsHTML = `<textarea name="${inputName}" rows="4" placeholder="Please share further details..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>`;
                         break;
                     case 'url':
-                        optionsHTML = <input type="url" name="${inputName}" placeholder="https://example.com" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">;
+                        optionsHTML = `<input type="url" name="${inputName}" placeholder="https://example.com" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">`;
                         break;
                 }
 
-                const uploadHTML = q.options?.some(o => o.triggerUpload) ? <div id="upload-container-${q.id}" class="hidden mt-4 p-4 border-2 border-dashed rounded-lg"><label for="file-upload-${q.id}" class="cursor-pointer text-indigo-600 hover:text-indigo-800"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg><span>Optional: Upload the document</span></label><input id="file-upload-${q.id}" type="file" class="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"><p id="file-name-${q.id}" class="text-sm text-gray-500 mt-2"></p></div> : '';
+                const uploadHTML = q.options?.some(o => o.triggerUpload) ? `<div id="upload-container-${q.id}" class="hidden mt-4 p-4 border-2 border-dashed rounded-lg"><label for="file-upload-${q.id}" class="cursor-pointer text-indigo-600 hover:text-indigo-800"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg><span>Optional: Upload the document</span></label><input id="file-upload-${q.id}" type="file" class="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"><p id="file-name-${q.id}" class="text-sm text-gray-500 mt-2"></p></div>` : '';
                 
                 const isLastQuestion = index === auditConfig.questions.filter(q => q.section !== 'Your Details').length;
                 const nextButtonText = isLastQuestion ? 'Submit & See Results' : 'Next';
 
-                return <div class="text-center"><p class="text-sm font-semibold text-indigo-600 mb-2">${q.section}</p><h3 class="text-xl md:text-2xl font-semibold mb-6">${q.text}${requiredIndicator}</h3></div><div class="space-y-4">${optionsHTML}</div>${uploadHTML}<div class="flex justify-between mt-8"><button data-action="prev" data-index="${index}" class="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-300">Back</button><button data-action="next" data-index="${index}" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300 flex items-center justify-center">${nextButtonText}</button></div>;
+                return `<div class="text-center"><p class="text-sm font-semibold text-indigo-600 mb-2">${q.section}</p><h3 class="text-xl md:text-2xl font-semibold mb-6">${q.text}${requiredIndicator}</h3></div><div class="space-y-4">${optionsHTML}</div>${uploadHTML}<div class="flex justify-between mt-8"><button data-action="prev" data-index="${index}" class="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-300">Back</button><button data-action="next" data-index="${index}" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300 flex items-center justify-center">${nextButtonText}</button></div>`;
             },
             
             showQuestion(index, direction = 'next') {
-                const currentScreen = document.getElementById(question-${this.currentQuestionIndex});
+                const currentScreen = document.getElementById(`question-${this.currentQuestionIndex}`);
                 if (currentScreen) {
                     currentScreen.classList.add('hidden', direction === 'next' ? 'previous' : 'next');
                 }
@@ -288,7 +288,7 @@
                     nextIndex = targetQuestion ? allNonDetailQuestions.indexOf(targetQuestion) + 1 : -1;
                 }
                 
-                const nextScreen = document.getElementById(question-${nextIndex});
+                const nextScreen = document.getElementById(`question-${nextIndex}`);
                 if (nextScreen) {
                     nextScreen.classList.remove('hidden', 'previous', 'next');
                     this.currentQuestionIndex = nextIndex;
@@ -309,7 +309,7 @@
                     this.progressBar.style.width = '0%';
                 } else {
                     const progress = ((currentStep + 1) / questionSteps.length) * 100;
-                    this.progressBar.style.width = ${progress}%;
+                    this.progressBar.style.width = `${progress}%`;
                 }
             },
 
@@ -328,7 +328,7 @@
 
                     if (isLastQuestion) {
                         button.disabled = true;
-                        button.innerHTML = <div class="loader"></div>;
+                        button.innerHTML = `<div class="loader"></div>`;
                         this.submitLead();
                         setTimeout(() => {
                             this.showResults();
@@ -346,10 +346,10 @@
                     const detailQuestions = auditConfig.questions.filter(q => q.section === 'Your Details');
                     let allValid = true;
                     for (const q of detailQuestions) {
-                        const input = document.getElementById(q_${q.id});
+                        const input = document.getElementById(`q_${q.id}`);
                         const value = input.value.trim();
                         if (q.required && !value) {
-                            this.showMessage(${q.text} is required.);
+                            this.showMessage(`${q.text} is required.`);
                             allValid = false;
                             break;
                         }
@@ -367,14 +367,14 @@
                 const question = allQuestions[index - 1];
                 if (!question) return false;
 
-                const inputName = q_${question.id};
-                const inputs = document.querySelectorAll([name="${inputName}"]);
+                const inputName = `q_${question.id}`;
+                const inputs = document.querySelectorAll(`[name="${inputName}"]`);
                 let value;
                 let isValid = false;
 
                 switch (question.type) {
                     case 'radio':
-                        const checkedRadio = document.querySelector([name="${inputName}"]:checked);
+                        const checkedRadio = document.querySelector(`[name="${inputName}"]:checked`);
                         if (checkedRadio) {
                             value = checkedRadio.value;
                             isValid = true;
@@ -389,7 +389,7 @@
                         isValid = true;
                         break;
                     case 'select':
-                        value = document.querySelector([name="${inputName}"]).value;
+                        value = document.querySelector(`[name="${inputName}"]`).value;
                         if (question.required && value === "Please Select") {
                             this.showMessage('Please make a selection.');
                             return false;
@@ -419,11 +419,11 @@
             handleFileUpload(e) {
                 const fileInput = e.target;
                 const qid = fileInput.id.replace('file-upload-', '');
-                const fileNameEl = document.getElementById(file-name-${qid});
+                const fileNameEl = document.getElementById(`file-name-${qid}`);
                 if (fileInput.files.length > 0) {
                     const file = fileInput.files[0];
-                    fileNameEl.textContent = Selected: ${file.name};
-                    this.answers[${qid}_file] = { question: File for ${qid}, answer: file.name };
+                    fileNameEl.textContent = `Selected: ${file.name}`;
+                    this.answers[`${qid}_file`] = { question: `File for ${qid}`, answer: file.name };
                 }
             },
 
@@ -434,7 +434,7 @@
                 const question = auditConfig.questions.find(q => q.id === qid);
                 if (!question) return;
                 const selectedOption = question.options.find(opt => opt.text === radio.value);
-                const uploadContainer = document.getElementById(upload-container-${qid});
+                const uploadContainer = document.getElementById(`upload-container-${qid}`);
                 if (uploadContainer && selectedOption && selectedOption.triggerUpload) {
                     uploadContainer.classList.remove('hidden');
                 } else if (uploadContainer) {
@@ -488,8 +488,8 @@
                 this.progressContainer.classList.add('hidden');
                 this.resultsScreen.classList.remove('hidden');
                 const score = this.calculateScore();
-                document.getElementById('radial-progress-text').textContent = ${score}%;
-                document.getElementById('radial-progress').style.setProperty('--progress', ${score}%);
+                document.getElementById('radial-progress-text').textContent = `${score}%`;
+                document.getElementById('radial-progress').style.setProperty('--progress', `${score}%`);
                 const messageEl = document.getElementById('compliance-message');
                 if (score <= 49) {
                     messageEl.textContent = 'Low compliance – urgent legal risks identified.';
@@ -515,15 +515,15 @@
                 for (const key in this.answers) {
                     const answerData = this.answers[key];
                     const answerText = Array.isArray(answerData.answer) ? answerData.answer.join(', ') : answerData.answer;
-                    if (answerText) promptSummary += - ${answerData.question}: ${answerText}\n;
+                    if (answerText) promptSummary += `- ${answerData.question}: ${answerText}\n`;
                 }
-                const prompt = You are a helpful legal tech assistant for a law firm named 'Silicon Law'. A potential client has just completed a legal compliance audit. Their final compliance score is ${this.calculateScore()}%. Based on their following answers, provide a brief, actionable summary of their top 3 legal risks and suggest concrete next steps. Frame the advice as helpful guidance, not as official legal advice. The tone should be professional, encouraging, and clear. Format the output as simple HTML using h4 for headings, ul and li for lists, and p for paragraphs. Do not wrap the entire response in a markdown block.\n\n${promptSummary}\n\nPlease provide the analysis now.;
+                const prompt = `You are a helpful legal tech assistant for a law firm named 'Silicon Law'. A potential client has just completed a legal compliance audit. Their final compliance score is ${this.calculateScore()}%. Based on their following answers, provide a brief, actionable summary of their top 3 legal risks and suggest concrete next steps. Frame the advice as helpful guidance, not as official legal advice. The tone should be professional, encouraging, and clear. Format the output as simple HTML using h4 for headings, ul and li for lists, and p for paragraphs. Do not wrap the entire response in a markdown block.\n\n${promptSummary}\n\nPlease provide the analysis now.`;
                 try {
                     const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
                     const apiKey = ""; // Replace with your Google API key or move to environment variable
-                    const apiUrl = https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey};
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                     const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                    if (!response.ok) throw new Error(API request failed with status ${response.status});
+                    if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
                     const result = await response.json();
                     if (result.candidates?.[0]?.content?.parts?.[0]) {
                         this.aiContent.innerHTML = result.candidates[0].content.parts[0].text;
@@ -532,7 +532,7 @@
                     }
                 } catch (error) {
                     console.error("Error fetching AI recommendations:", error);
-                    this.aiContent.innerHTML = <p class="text-red-500">Sorry, we couldn't generate recommendations at this time. Please try again later.</p>;
+                    this.aiContent.innerHTML = `<p class="text-red-500">Sorry, we couldn't generate recommendations at this time. Please try again later.</p>`;
                 } finally {
                     this.aiLoader.classList.add('hidden');
                     this.aiContent.classList.remove('hidden');
@@ -541,13 +541,13 @@
             
             submitLead() {
                 const payload = {
-                    user_name: ${this.answers.firstName.answer} ${this.answers.lastName.answer},
+                    user_name: `${this.answers.firstName.answer} ${this.answers.lastName.answer}`,
                     user_email: this.answers.email.answer,
                     email: this.answers.email.answer,
                     company_name: this.answers.companyName.answer,
                     phone_number: this.answers.phone.answer || '',
                     compliance_score: this.calculateScore(),
-                    full_summary: Object.entries(this.answers).map(([key, value]) => ${value.question}: ${Array.isArray(value.answer) ? value.answer.join(', ') : value.answer}).join('\n')
+                    full_summary: Object.entries(this.answers).map(([key, value]) => `${value.question}: ${Array.isArray(value.answer) ? value.answer.join(', ') : value.answer}`).join('\n')
                 };
 
                 fetch('/.netlify/functions/send-email', {
@@ -571,7 +571,7 @@
 
             showMessage(message, type = 'error') {
                 this.messageText.textContent = message;
-                this.messageBox.className = fixed top-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transition-opacity duration-300 ${type === 'error' ? 'bg-red-500' : 'bg-green-500'};
+                this.messageBox.className = `fixed top-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transition-opacity duration-300 ${type === 'error' ? 'bg-red-500' : 'bg-green-500'}`;
                 this.messageBox.classList.remove('hidden');
                 setTimeout(() => {
                     this.messageBox.classList.add('hidden');
