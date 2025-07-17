@@ -35,20 +35,26 @@ exports.handler = async (event, context) => {
   const privateKey = process.env.EMAILJS_PRIVATE_KEY;
 
   console.log('Environment variables present:', { serviceId: !!serviceId, firmTemplateId: !!firmTemplateId, clientTemplateId: !!clientTemplateId, publicKey: !!publicKey, privateKey: !!privateKey });
+  console.log('PublicKey (last 2 chars masked):', `${publicKey.slice(0, -2)}XX`);
+  console.log('PrivateKey (last 2 chars masked):', `${privateKey.slice(0, -2)}XX`);
 
-  if (!serviceId || !firmTemplateId || !clientTemplateId || !publicKey) {
+  if (!serviceId || !firmTemplateId || !clientTemplateId || !publicKey || !privateKey) {
     return { statusCode: 500, body: JSON.stringify({ error: 'Missing configuration' }) };
   }
 
   try {
     const trimmedPublicKey = publicKey.trim();
-    console.log('Using publicKey as userId (last 2 chars masked):', `${trimmedPublicKey.slice(0, -2)}XX`);
-    const emailJsOptions = privateKey ? { privateKey: privateKey.trim() } : {};
+    const trimmedPrivateKey = privateKey.trim();
+    const emailJsOptions = {
+      publicKey: trimmedPublicKey,  // Add publicKey to options
+      privateKey: trimmedPrivateKey // Include privateKey
+    };
+
+    console.log('Using emailJsOptions:', emailJsOptions);
 
     const firmResponse = await send({
       service_id: serviceId,
       template_id: firmTemplateId,
-      user_id: trimmedPublicKey, // Explicitly use publicKey as user_id
       template_params: params
     }, emailJsOptions);
     console.log('Firm email response:', firmResponse);
@@ -56,7 +62,6 @@ exports.handler = async (event, context) => {
     const clientResponse = await send({
       service_id: serviceId,
       template_id: clientTemplateId,
-      user_id: trimmedPublicKey,
       template_params: params
     }, emailJsOptions);
     console.log('Client email response:', clientResponse);
