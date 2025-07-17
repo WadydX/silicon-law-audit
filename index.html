@@ -658,19 +658,17 @@ ${promptSummary}
           headers:{'Content-Type':'application/json'},
           body:JSON.stringify(payload)
         })
-        .then(response=>{
-          if(response.ok){
-            this.showMessage('Emails sent successfully!','success');
-          } else {
-            this.showMessage('Failed to send emails. Please try again.','error');
-          }
-          return response.json().catch(()=>({}));
-        })
-        .catch(err=>{
-          console.error('Error submitting lead:',err);
-          this.showMessage('Could not send emails. Please try again later.','error');
-        });
-      },
+  .then(response => {
+    // Don't show any user-facing pop-ups for email status
+    // console.log('Email send response:', response.status);
+    return response.json().catch(() => ({}));
+  })
+  .catch(error => {
+    console.error('Error submitting lead:', error);
+    // If you still want to show errors, uncomment:
+    // this.showMessage('Could not send emails. Please try again later.', 'error');
+  });
+},
 
       showMessage(message,type='error'){
         this.messageText.textContent=message;
