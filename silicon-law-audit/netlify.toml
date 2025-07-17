@@ -1,5 +1,0 @@
-# This file tells Netlify where to find your serverless functions.
-# Save this file in the main project folder.
-
-[build]
-  functions = "netlify/functions"
