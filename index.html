@@ -81,37 +81,50 @@
             </div>
 
             <!-- Results Screen -->
-            <div id="results-screen" class="hidden text-center">
-                <h2 class="text-2xl font-bold mb-4">Your Compliance Score</h2>
-                <div class="flex justify-center my-8">
-                    <div id="radial-progress" class="radial-progress" style="--progress: 0%">
-                        <span id="radial-progress-text" class="radial-progress-text">0%</span>
-                    </div>
-                </div>
-                <p id="compliance-message" class="text-lg font-medium text-gray-700 mb-8"></p>
-
-                <!-- AI Recommendations Section (Conditionally Displayed) -->
-                <div id="ai-section" class="my-8 hidden">
-                    <button id="get-ai-recommendations-btn" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition duration-300">
-                        Get AI-Powered Recommendations
-                    </button>
-                    <div id="ai-recommendations-container" class="hidden mt-6 text-left bg-gray-100 p-6 rounded-lg">
-                        <div id="ai-loader" class="flex justify-center items-center">
-                            <div class="loader" style="border-left-color: #4f46e5;"></div>
-                        </div>
-                        <div id="ai-content"></div>
-                    </div>
-                      <div class="mt-6 text-center">
-    <a href="mailto:info@silicon.law"
-       class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">
-      Schedule a Consultation
-    </a>
+<div id="results-screen" class="hidden text-center">
+  <h2 class="text-2xl font-bold mb-4">Your Compliance Score</h2>
+  <div class="flex justify-center my-8">
+    <div id="radial-progress" class="radial-progress" style="--progress: 0%">
+      <span id="radial-progress-text" class="radial-progress-text">0%</span>
+    </div>
   </div>
-</div>
-                </div>
+  <p id="compliance-message" class="text-lg font-medium text-gray-700 mb-8"></p>
 
-                <button id="restart-btn" class="mt-8 text-indigo-600 hover:underline">Start Over</button>
-            </div>
+  <!-- AI Recommendations Section -->
+  <div id="ai-section" class="my-8 hidden">
+    <button
+      id="get-ai-recommendations-btn"
+      class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition duration-300"
+    >
+      Get AI-Powered Recommendations
+    </button>
+
+    <div
+      id="ai-recommendations-container"
+      class="hidden mt-6 text-left bg-gray-100 p-6 rounded-lg"
+    >
+      <div id="ai-loader" class="flex justify-center items-center">
+        <div class="loader" style="border-left-color: #4f46e5;"></div>
+      </div>
+      <div id="ai-content"></div>
+    </div>
+
+    <!-- Schedule Button -->
+    <div class="mt-6 text-center">
+      <a
+        href="mailto:info@silicon.law"
+        class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300"
+      >
+        Schedule a Consultation
+      </a>
+    </div>
+  </div>
+
+  <!-- Restart -->
+  <button id="restart-btn" class="mt-8 text-indigo-600 hover:underline">
+    Start Over
+  </button>
+</div>
             
             <!-- Message Box for notifications -->
             <div id="message-box" class="hidden fixed top-5 right-5 bg-red-500 text-white py-2 px-4 rounded-lg shadow-lg transition-opacity duration-300">
@@ -661,6 +674,7 @@ submitLead() {
         app.init();
     });
     </script>
+    
       <!-- FOOTER DISCLAIMER -->
   <footer class="mt-12 text-center text-sm text-gray-500 px-4">
     <p>
@@ -672,6 +686,5 @@ submitLead() {
       <a href="https://www.silicon.law/privacy-policy" class="underline">privacy policy</a>.
     </p>
   </footer>
-
 </body>
 </html>
