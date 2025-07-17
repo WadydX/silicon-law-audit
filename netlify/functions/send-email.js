@@ -28,14 +28,22 @@ exports.handler = async (event, context) => {
     };
   }
 
-  try {
-    console.log('Environment variables:', {
-      serviceId: process.env.EMAILJS_SERVICE_ID,
-      firmTemplateId: process.env.EMAILJS_FIRM_TEMPLATE_ID,
-      clientTemplateId: process.env.EMAILJS_CLIENT_TEMPLATE_ID,
-      publicKey: process.env.EMAILJS_PUBLIC_KEY
-    });
+  const serviceId = process.env.EMAILJS_SERVICE_ID;
+  const firmTemplateId = process.env.EMAILJS_FIRM_TEMPLATE_ID;
+  const clientTemplateId = process.env.EMAILJS_CLIENT_TEMPLATE_ID;
+  const publicKey = process.env.EMAILJS_PUBLIC_KEY;
 
+  console.log('Environment variables:', { serviceId, firmTemplateId, clientTemplateId, publicKey });
+
+  if (!serviceId || !firmTemplateId || !clientTemplateId || !publicKey) {
+    console.error('Missing environment variables:', { serviceId, firmTemplateId, clientTemplateId, publicKey });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Missing configuration. Please check environment variables.' })
+    };
+  }
+
+  try {
     const firmParams = {
       user_name,
       user_email,
@@ -48,19 +56,19 @@ exports.handler = async (event, context) => {
 
     const clientParams = { ...firmParams };
 
-    // Send email to the firm
+    console.log('Sending firm email with params:', firmParams);
     await send({
-      service_id: process.env.EMAILJS_SERVICE_ID,
-      template_id: process.env.EMAILJS_FIRM_TEMPLATE_ID,
-      user_id: process.env.EMAILJS_PUBLIC_KEY,
+      service_id: serviceId,
+      template_id: firmTemplateId,
+      user_id: publicKey,
       template_params: firmParams
     });
 
-    // Send email to the client
+    console.log('Sending client email with params:', clientParams);
     await send({
-      service_id: process.env.EMAILJS_SERVICE_ID,
-      template_id: process.env.EMAILJS_CLIENT_TEMPLATE_ID,
-      user_id: process.env.EMAILJS_PUBLIC_KEY,
+      service_id: serviceId,
+      template_id: clientTemplateId,
+      user_id: publicKey,
       template_params: clientParams
     });
 
@@ -70,7 +78,11 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({ message: 'Emails sent successfully' })
     };
   } catch (error) {
-    console.error('Email sending failed:', error.message);
+    console.error('Email sending failed:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code
+    });
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Could not send emails. Please try again later.' })
