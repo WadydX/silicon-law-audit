@@ -147,13 +147,13 @@
             { id: 'useConsultants', section: 'Staff', text: 'Do you use consultants or contractors?', type: 'radio', weight: 0, required: true, options: [{ text: 'Yes', score: 0 }, { text: 'No', score: 0 }] },
             { id: 'consultantAgreements', section: 'Staff', text: 'Do you have consultancy or contractor agreements?', type: 'radio', weight: 10, required: true, condition: { questionId: 'useConsultants', value: 'Yes' }, options: [{ text: 'Yes', score: 10, triggerUpload: true }, { text: 'No', score: 0 }] },
             { id: 'consultantLocation', section: 'Staff', text: 'Where are your consultants and contractors located?', type: 'checkbox', weight: 0, required: true, condition: { questionId: 'useConsultants', value: 'Yes' }, options: [{ text: 'UK', score: 0 }, { text: 'EEA', score: 0 }, { text: 'USA', score: 0 }, { text: 'Global', score: 0 }] },
-            { id: 'ipAssignment', section: 'Staff', text: 'Do you have an IP Assignment Agreement that all your employees, consultants, contractors, and company officers sign?', type: 'radio', weight: 10, required: true, options: [{ text: 'Yes', score: 10, triggerUpload: true }, { text: 'No', score: 0 }] },
+            { id: 'ipAssignment', section: 'Staff', text: 'Do you have an IP Assignment Agreement that all your employees, consultants, contractors, and company officers, such as directors (including yourself), sign?', type: 'radio', weight: 10, required: true, options: [{ text: 'Yes', score: 10, triggerUpload: true }, { text: 'No', score: 0 }] },
             { id: 'annualRevenue', section: 'Commercial', text: 'What is your annual revenue?', type: 'select', weight: 0, required: true, options: [{ text: 'Please Select', score: 0 }, { text: '£0 - £50,000', score: 0 }, { text: '£50,001 - £250,000', score: 0 }, { text: '£250,001 - £1,000,000', score: 0 }, { text: '£1,000,001+', score: 0 }] },
             { id: 'clientLocation', section: 'Commercial', text: 'Where are your clients located?', type: 'checkbox', weight: 0, required: true, options: [{ text: 'UK', score: 0 }, { text: 'EEA', score: 0 }, { text: 'USA', score: 0 }, { text: 'Global', score: 0 }] },
             { id: 'serviceModel', section: 'Commercial', text: 'What is your service model?', type: 'radio', weight: 0, required: true, options: [{ text: 'B2B', score: 0 }, { text: 'B2C', score: 0 }, { text: 'Both', score: 0 }, { text: 'Other', score: 0 }] },
             { id: 'sellType', section: 'Commercial', text: 'What do you sell?', type: 'checkbox', weight: 0, required: true, options: [{ text: 'Physical Goods', score: 0 }, { text: 'Digital Products', score: 0 }, { text: 'Services', score: 0 }, { text: 'Software', score: 0 }, { text: 'Other', score: 0 }] },
             { id: 'hasTerms', section: 'Commercial', text: 'Do you have terms and conditions for what you sell?', type: 'radio', weight: 10, required: true, options: [{ text: 'Yes', score: 10, triggerUpload: true }, { text: 'No', score: 0 }] },
-            { id: 'focusArea', section: 'Submission', text: 'Is there anything you'd like to add or any specific you'd like us to focus on?', type: 'textarea', weight: 0, required: false }
+            { id: 'focusArea', section: 'Submission', text: 'Is there anything you\'d like to add or any specific you\'d like us to focus on?', type: 'textarea', weight: 0, required: false }
         ]
     };
 
@@ -185,310 +185,323 @@
                 const nonDetailQuestions = auditConfig.questions.filter(q => q.section !== 'Your Details');
                 return nonDetailQuestions.filter(q => {
                     if (!q.condition) return true;
-                    const ans = this.answers[q.condition.questionId];
-                    return ans && ans.answer === q.condition.value;
+                    const conditionAnswer = this.answers[q.condition.questionId];
+                    return conditionAnswer && conditionAnswer.answer === q.condition.value;
                 });
             },
 
             buildForm() {
                 this.formContainer.innerHTML = '';
-                const detailQs = auditConfig.questions.filter(q => q.section === 'Your Details');
+                
+                const detailQuestions = auditConfig.questions.filter(q => q.section === 'Your Details');
                 const detailsScreen = document.createElement('div');
-                detailsScreen.id = 'question-0';
+                detailsScreen.id = question-0;
                 detailsScreen.className = 'form-screen';
-                detailsScreen.innerHTML = this.getDetailsScreenHTML(detailQs);
+                detailsScreen.innerHTML = this.getDetailsScreenHTML(detailQuestions);
                 this.formContainer.appendChild(detailsScreen);
 
-                const otherQs = auditConfig.questions.filter(q => q.section !== 'Your Details');
-                otherQs.forEach((q, idx) => {
+                const otherQuestions = auditConfig.questions.filter(q => q.section !== 'Your Details');
+                otherQuestions.forEach((q, index) => {
                     const screen = document.createElement('div');
-                    screen.id = `question-${idx+1}`;
+                    screen.id = question-${index + 1};
                     screen.className = 'form-screen hidden';
-                    screen.innerHTML = this.getQuestionHTML(q, idx+1);
+                    screen.innerHTML = this.getQuestionHTML(q, index + 1);
                     this.formContainer.appendChild(screen);
                 });
             },
 
-            getDetailsScreenHTML(detailQs) {
-                const opts = detailQs.map(q => {
-                    const req = q.required ? '<span class="text-red-500 ml-1">*</span>' : '';
-                    return `
+            getDetailsScreenHTML(detailQuestions) {
+                const optionsHTML = detailQuestions.map(q => {
+                    const requiredIndicator = q.required ? '<span class="text-red-500 ml-1">*</span>' : '';
+                    return 
                         <div>
-                            <label for="q_${q.id}" class="block text-sm font-medium text-gray-700 mb-1">${q.text}${req}</label>
+                            <label for="q_${q.id}" class="block text-sm font-medium text-gray-700 mb-1">${q.text}${requiredIndicator}</label>
                             <input type="${q.type}" id="q_${q.id}" name="q_${q.id}" placeholder="${q.text}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         </div>
-                    `;
+                    ;
                 }).join('');
-                return `
+
+                return 
                     <div class="text-center">
                         <p class="text-sm font-semibold text-indigo-600 mb-2">Your Details</p>
                         <h3 class="text-xl md:text-2xl font-semibold mb-6">Let's start with some basic information</h3>
                     </div>
-                    <div class="space-y-4">${opts}</div>
+                    <div class="space-y-4">${optionsHTML}</div>
                     <div class="flex justify-end mt-8">
                         <button data-action="next" data-index="0" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">Next</button>
                     </div>
-                `;
+                ;
             },
 
             getQuestionHTML(q, index) {
                 let optionsHTML = '';
-                const name = `q_${q.id}`;
-                const req = q.required ? '<span class="text-red-500 ml-1">*</span>' : '';
-                switch(q.type) {
+                const inputName = q_${q.id};
+                const requiredIndicator = q.required ? '<span class="text-red-500 ml-1">*</span>' : '';
+
+                switch (q.type) {
                     case 'radio':
-                        optionsHTML = q.options.map(o => `
-                            <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50">
-                                <input type="radio" name="${name}" value="${o.text}" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
-                                <span class="ml-3 text-gray-700">${o.text}</span>
-                            </label>
-                        `).join('');
+                        optionsHTML = q.options.map(opt => <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500"><input type="radio" name="${inputName}" value="${opt.text}" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"><span class="ml-3 text-gray-700">${opt.text}</span></label>).join('');
                         break;
                     case 'checkbox':
-                        optionsHTML = q.options.map(o => `
-                            <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50">
-                                <input type="checkbox" name="${name}" value="${o.text}" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                                <span class="ml-3 text-gray-700">${o.text}</span>
-                            </label>
-                        `).join('');
+                        optionsHTML = q.options.map(opt => <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500"><input type="checkbox" name="${inputName}" value="${opt.text}" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"><span class="ml-3 text-gray-700">${opt.text}</span></label>).join('');
                         break;
                     case 'select':
-                        optionsHTML = `
-                            <select name="${name}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                                ${q.options.map(o => `<option value="${o.text}">${o.text}</option>`).join('')}
-                            </select>
-                        `;
+                        optionsHTML = <select name="${inputName}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">${q.options.map(opt => <option value="${opt.text}">${opt.text}</option>).join('')}</select>;
                         break;
                     case 'textarea':
-                        optionsHTML = `
-                            <textarea name="${name}" rows="4" placeholder="Please share further details..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
-                        `;
+                        optionsHTML = <textarea name="${inputName}" rows="4" placeholder="Please share further details..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>;
                         break;
                     case 'url':
-                        optionsHTML = `
-                            <input type="url" name="${name}" placeholder="https://example.com" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                        `;
+                        optionsHTML = <input type="url" name="${inputName}" placeholder="https://example.com" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">;
                         break;
                 }
-                const uploadHTML = q.options?.some(o => o.triggerUpload) 
-                    ? `<div id="upload-container-${q.id}" class="hidden mt-4 p-4 border-2 border-dashed rounded-lg">…</div>` 
-                    : '';
-                const isLast = index === auditConfig.questions.filter(q=>q.section!=='Your Details').length;
-                const btnText = isLast ? 'Submit & See Results' : 'Next';
-                return `
-                    <div class="text-center">
-                        <p class="text-sm font-semibold text-indigo-600 mb-2">${q.section}</p>
-                        <h3 class="text-xl md:text-2xl font-semibold mb-6">${q.text}${req}</h3>
-                    </div>
-                    <div class="space-y-4">${optionsHTML}</div>
-                    ${uploadHTML}
-                    <div class="flex justify-between mt-8">
-                        <button data-action="prev" data-index="${index}" class="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-300">Back</button>
-                        <button data-action="next" data-index="${index}" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300 flex items-center justify-center">
-                            ${btnText}
-                        </button>
-                    </div>
-                `;
-            },
 
-            showQuestion(index, direction='next') {
-                const curr = document.getElementById(`question-${this.currentQuestionIndex}`);
-                if (curr) curr.classList.add('hidden', direction==='next'?'previous':'next');
-                let nextIdx = index;
-                if (index>0) {
-                    const visible = this.getVisibleQuestions();
-                    const all = auditConfig.questions.filter(q=>q.section!=='Your Details');
-                    let target = all[index-1];
-                    let vidx = visible.indexOf(target);
-                    if (vidx===-1) {
-                        if (direction==='next') {
-                            target = visible.find(vq=>all.indexOf(vq)>=index-1);
+                const uploadHTML = q.options?.some(o => o.triggerUpload) ? <div id="upload-container-${q.id}" class="hidden mt-4 p-4 border-2 border-dashed rounded-lg"><label for="file-upload-${q.id}" class="cursor-pointer text-indigo-600 hover:text-indigo-800"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg><span>Optional: Upload the document</span></label><input id="file-upload-${q.id}" type="file" class="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"><p id="file-name-${q.id}" class="text-sm text-gray-500 mt-2"></p></div> : '';
+                
+                const isLastQuestion = index === auditConfig.questions.filter(q => q.section !== 'Your Details').length;
+                const nextButtonText = isLastQuestion ? 'Submit & See Results' : 'Next';
+
+                return <div class="text-center"><p class="text-sm font-semibold text-indigo-600 mb-2">${q.section}</p><h3 class="text-xl md:text-2xl font-semibold mb-6">${q.text}${requiredIndicator}</h3></div><div class="space-y-4">${optionsHTML}</div>${uploadHTML}<div class="flex justify-between mt-8"><button data-action="prev" data-index="${index}" class="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-300">Back</button><button data-action="next" data-index="${index}" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300 flex items-center justify-center">${nextButtonText}</button></div>;
+            },
+            
+            showQuestion(index, direction = 'next') {
+                const currentScreen = document.getElementById(question-${this.currentQuestionIndex});
+                if (currentScreen) {
+                    currentScreen.classList.add('hidden', direction === 'next' ? 'previous' : 'next');
+                }
+                
+                let nextIndex = index;
+                if (index > 0) {
+                    const visibleQuestions = this.getVisibleQuestions();
+                    const allNonDetailQuestions = auditConfig.questions.filter(q => q.section !== 'Your Details');
+                    let targetQuestion = allNonDetailQuestions[index - 1];
+
+                    let visibleIndex = visibleQuestions.indexOf(targetQuestion);
+                    if (visibleIndex === -1) {
+                        if(direction === 'next') {
+                            targetQuestion = visibleQuestions.find(vq => allNonDetailQuestions.indexOf(vq) >= index -1);
                         } else {
-                            const rev = [...visible].reverse();
-                            target = rev.find(vq=>all.indexOf(vq)<=index-1);
+                            const reversedVisible = [...visibleQuestions].reverse();
+                            targetQuestion = reversedVisible.find(vq => allNonDetailQuestions.indexOf(vq) <= index -1);
                         }
                     }
-                    nextIdx = target ? all.indexOf(target)+1 : -1;
+                    nextIndex = targetQuestion ? allNonDetailQuestions.indexOf(targetQuestion) + 1 : -1;
                 }
-                const nextScreen = document.getElementById(`question-${nextIdx}`);
+                
+                const nextScreen = document.getElementById(question-${nextIndex});
                 if (nextScreen) {
-                    nextScreen.classList.remove('hidden','previous','next');
-                    this.currentQuestionIndex = nextIdx;
+                    nextScreen.classList.remove('hidden', 'previous', 'next');
+                    this.currentQuestionIndex = nextIndex;
                 } else {
                     this.showResults();
                 }
+
                 this.updateProgress();
             },
 
             updateProgress() {
-                const steps = this.getVisibleQuestions();
-                const all = auditConfig.questions.filter(q=>q.section!=='Your Details');
-                if (this.currentQuestionIndex===0) {
+                const questionSteps = this.getVisibleQuestions();
+                const allNonDetailQuestions = auditConfig.questions.filter(q => q.section !== 'Your Details');
+                const currentQuestionObject = allNonDetailQuestions[this.currentQuestionIndex - 1];
+                const currentStep = questionSteps.indexOf(currentQuestionObject);
+
+                if (this.currentQuestionIndex === 0) {
                     this.progressBar.style.width = '0%';
                 } else {
-                    const currObj = all[this.currentQuestionIndex-1];
-                    const step = steps.indexOf(currObj);
-                    const prog = ((step+1)/steps.length)*100;
-                    this.progressBar.style.width = `${prog}%`;
+                    const progress = ((currentStep + 1) / questionSteps.length) * 100;
+                    this.progressBar.style.width = ${progress}%;
                 }
             },
 
             handleNavigation(e) {
-                const act = e.target.dataset.action;
-                if (!act) return;
-                const idx = parseInt(e.target.dataset.index,10);
-                if (act==='next') {
-                    if (!this.saveAnswer(idx)) return;
-                    const all = auditConfig.questions.filter(q=>q.section!=='Your Details');
-                    const isLast = idx===all.length;
-                    if (isLast) {
-                        e.target.disabled = true;
-                        e.target.innerHTML = `<div class="loader"></div>`;
+                const action = e.target.dataset.action;
+                if (!action) return;
+                
+                const index = parseInt(e.target.dataset.index, 10);
+                const button = e.target;
+
+                if (action === 'next') {
+                    if (!this.saveAnswer(index)) return;
+                    
+                    const allQuestions = auditConfig.questions.filter(q => q.section !== 'Your Details');
+                    const isLastQuestion = index === allQuestions.length;
+
+                    if (isLastQuestion) {
+                        button.disabled = true;
+                        button.innerHTML = <div class="loader"></div>;
                         this.submitLead();
-                        setTimeout(()=>this.showResults(), 500);
+                        setTimeout(() => {
+                            this.showResults();
+                        }, 500);
                     } else {
-                        this.showQuestion(idx+1,'next');
+                        this.showQuestion(index + 1, 'next');
                     }
-                } else if (act==='prev') {
-                    this.showQuestion(idx-1,'prev');
+                } else if (action === 'prev') {
+                    this.showQuestion(index - 1, 'prev');
                 }
             },
 
             saveAnswer(index) {
-                if (index===0) {
-                    const detailQs = auditConfig.questions.filter(q=>q.section==='Your Details');
-                    let valid=true;
-                    for (const q of detailQs) {
-                        const inp = document.getElementById(`q_${q.id}`);
-                        const val = inp.value.trim();
-                        if (q.required && !val) {
-                            this.showMessage(`${q.text} is required.`);
-                            valid=false;
+                if (index === 0) {
+                    const detailQuestions = auditConfig.questions.filter(q => q.section === 'Your Details');
+                    let allValid = true;
+                    for (const q of detailQuestions) {
+                        const input = document.getElementById(q_${q.id});
+                        const value = input.value.trim();
+                        if (q.required && !value) {
+                            this.showMessage(${q.text} is required.);
+                            allValid = false;
                             break;
                         }
-                        if (q.type==='email' && val && !/^\S+@\S+\.\S+$/.test(val)) {
+                        if (q.type === 'email' && value && !/^\S+@\S+\.\S+$/.test(value)) {
                             this.showMessage('Please enter a valid email address.');
-                            valid=false;
+                            allValid = false;
                             break;
                         }
-                        this.answers[q.id] = { question: q.text, answer: val };
+                        this.answers[q.id] = { question: q.text, answer: value };
                     }
-                    return valid;
+                    return allValid;
                 }
-                const all = auditConfig.questions.filter(q=>q.section!=='Your Details');
-                const q = all[index-1];
-                if (!q) return false;
-                const name = `q_${q.id}`;
-                const inputs = document.querySelectorAll(`[name="${name}"]`);
-                let val, ok=false;
-                switch(q.type) {
+
+                const allQuestions = auditConfig.questions.filter(q => q.section !== 'Your Details');
+                const question = allQuestions[index - 1];
+                if (!question) return false;
+
+                const inputName = q_${question.id};
+                const inputs = document.querySelectorAll([name="${inputName}"]);
+                let value;
+                let isValid = false;
+
+                switch (question.type) {
                     case 'radio':
-                        const sel = document.querySelector(`[name="${name}"]:checked`);
-                        if (sel) { val=sel.value; ok=true; }
+                        const checkedRadio = document.querySelector([name="${inputName}"]:checked);
+                        if (checkedRadio) {
+                            value = checkedRadio.value;
+                            isValid = true;
+                        }
                         break;
                     case 'checkbox':
-                        val = Array.from(inputs).filter(i=>i.checked).map(i=>i.value);
-                        if (q.required && val.length===0) {
+                        value = Array.from(inputs).filter(i => i.checked).map(i => i.value);
+                        if (question.required && value.length === 0) {
                             this.showMessage('Please select at least one option.');
                             return false;
                         }
-                        ok=true;
+                        isValid = true;
                         break;
                     case 'select':
-                        val = document.querySelector(`[name="${name}"]`).value;
-                        if (q.required && val==='Please Select') {
+                        value = document.querySelector([name="${inputName}"]).value;
+                        if (question.required && value === "Please Select") {
                             this.showMessage('Please make a selection.');
                             return false;
                         }
-                        ok=true;
+                        isValid = true;
                         break;
                     case 'textarea':
                     case 'url':
-                        val = inputs[0].value.trim();
-                        if (q.required && !val) {
+                        value = inputs[0].value.trim();
+                        if (question.required && !value) {
                             this.showMessage('This field is required.');
                             return false;
                         }
-                        ok=true;
+                        isValid = true;
                         break;
                 }
-                if (q.required && !ok) {
+
+                if (question.required && !isValid) {
                     this.showMessage('Please select an option to continue.');
                     return false;
                 }
-                this.answers[q.id] = { question: q.text, answer: val };
+
+                this.answers[question.id] = { question: question.text, answer: value };
                 return true;
             },
 
             handleFileUpload(e) {
-                const input = e.target;
-                const id = input.id.replace('file-upload-','');
-                const nameEl = document.getElementById(`file-name-${id}`);
-                if (input.files.length>0) {
-                    const f = input.files[0];
-                    nameEl.textContent = `Selected: ${f.name}`;
-                    this.answers[`${id}_file`] = { question: `File for ${id}`, answer: f.name };
+                const fileInput = e.target;
+                const qid = fileInput.id.replace('file-upload-', '');
+                const fileNameEl = document.getElementById(file-name-${qid});
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    fileNameEl.textContent = Selected: ${file.name};
+                    this.answers[${qid}_file] = { question: File for ${qid}, answer: file.name };
                 }
             },
 
             handleConditionalUpload(e) {
-                if (e.target.type!=='radio') return;
-                const id = e.target.name.replace('q_','');
-                const q = auditConfig.questions.find(x=>x.id===id);
-                const opt = q.options.find(o=>o.text===e.target.value);
-                const cont = document.getElementById(`upload-container-${id}`);
-                if (cont) {
-                    if (opt && opt.triggerUpload) cont.classList.remove('hidden');
-                    else cont.classList.add('hidden');
+                const radio = e.target;
+                if (radio.type !== 'radio') return;
+                const qid = radio.name.replace('q_', '');
+                const question = auditConfig.questions.find(q => q.id === qid);
+                if (!question) return;
+                const selectedOption = question.options.find(opt => opt.text === radio.value);
+                const uploadContainer = document.getElementById(upload-container-${qid});
+                if (uploadContainer && selectedOption && selectedOption.triggerUpload) {
+                    uploadContainer.classList.remove('hidden');
+                } else if (uploadContainer) {
+                    uploadContainer.classList.add('hidden');
                 }
             },
 
             calculateScore() {
-                let total=0, max=0;
-                this.getVisibleQuestions().forEach(q=>{
-                    if (q.weight>0) {
-                        max+=q.weight;
-                        const ans = this.answers[q.id];
-                        if (!ans) return;
-                        if (q.scoreLogic) total+=q.scoreLogic(ans.answer);
-                        else if (q.options) {
-                            let cur=0;
-                            if (q.type==='checkbox' && Array.isArray(ans.answer)) {
-                                ans.answer.forEach(a=>{
-                                    const o=q.options.find(x=>x.text===a);
-                                    if(o) cur+=o.score;
-                                });
+                let totalScore = 0;
+                let maxScore = 0;
+                this.getVisibleQuestions().forEach(q => {
+                    if (q.weight > 0) {
+                        maxScore += q.weight;
+                        const answerData = this.answers[q.id];
+                        if (!answerData) return;
+
+                        if (q.scoreLogic) {
+                            totalScore += q.scoreLogic(answerData.answer);
+                        } else if (q.options) {
+                            let currentOptionScore = 0;
+                            if (q.type === 'checkbox') {
+                                if (Array.isArray(answerData.answer)) {
+                                    answerData.answer.forEach(ans => {
+                                        const opt = q.options.find(o => o.text === ans);
+                                        if (opt) currentOptionScore += opt.score;
+                                    });
+                                }
                             } else {
-                                const o=q.options.find(x=>x.text===ans.answer);
-                                if(o) cur=o.score;
+                                const opt = q.options.find(o => o.text === answerData.answer);
+                                if (opt) currentOptionScore = opt.score;
                             }
-                            const maxOpt = q.options.reduce((sum,o)=>sum+(o.score>0?o.score:0),0);
-                            if(maxOpt>0) total+=(cur/maxOpt)*q.weight;
+                            
+                            let maxOptionScore;
+                            if (q.type === 'checkbox') {
+                                maxOptionScore = q.options.reduce((sum, opt) => sum + (opt.score > 0 ? opt.score : 0), 0);
+                            } else {
+                                maxOptionScore = Math.max(...q.options.map(o => o.score || 0));
+                            }
+
+                            if(maxOptionScore > 0) {
+                                totalScore += (currentOptionScore / maxOptionScore) * q.weight;
+                            }
                         }
                     }
                 });
-                return max>0?Math.round((total/max)*100):100;
+                return maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 100;
             },
 
             showResults() {
                 this.formContainer.classList.add('hidden');
                 this.progressContainer.classList.add('hidden');
                 this.resultsScreen.classList.remove('hidden');
-                const score=this.calculateScore();
-                document.getElementById('radial-progress-text').textContent=`${score}%`;
-                document.getElementById('radial-progress').style.setProperty('--progress',`${score}%`);
-                const msgEl=document.getElementById('compliance-message');
-                if(score<=49) {
-                    msgEl.textContent='Low compliance – urgent legal risks identified.';
-                    msgEl.className='text-lg font-medium text-red-600 mb-8';
-                } else if(score<=79) {
-                    msgEl.textContent='Moderate compliance – consider tightening up some areas.';
-                    msgEl.className='text-lg font-medium text-yellow-600 mb-8';
+                const score = this.calculateScore();
+                document.getElementById('radial-progress-text').textContent = ${score}%;
+                document.getElementById('radial-progress').style.setProperty('--progress', ${score}%);
+                const messageEl = document.getElementById('compliance-message');
+                if (score <= 49) {
+                    messageEl.textContent = 'Low compliance – urgent legal risks identified.';
+                    messageEl.className = 'text-lg font-medium text-red-600 mb-8';
+                } else if (score <= 79) {
+                    messageEl.textContent = 'Moderate compliance – consider tightening up some areas.';
+                    messageEl.className = 'text-lg font-medium text-yellow-600 mb-8';
                 } else {
-                    msgEl.textContent='Strong compliance – well done!';
-                    msgEl.className='text-lg font-medium text-green-600 mb-8';
+                    messageEl.textContent = 'Strong compliance – well done!';
+                    messageEl.className = 'text-lg font-medium text-green-600 mb-8';
                 }
-                if(appConfig.enableAiRecommendations) {
+                if (appConfig.enableAiRecommendations) {
                     this.aiSection.classList.remove('hidden');
                 }
             },
@@ -498,48 +511,43 @@
                 this.aiRecommendationsContainer.classList.remove('hidden');
                 this.aiLoader.classList.remove('hidden');
                 this.aiContent.classList.add('hidden');
-                let prompt="The user's audit answers are as follows:\n";
-                for(const k in this.answers) {
-                    const a=this.answers[k];
-                    const txt=Array.isArray(a.answer)?a.answer.join(', '):a.answer;
-                    if(txt) prompt+=`- ${a.question}: ${txt}\n`;
+                let promptSummary = "The user's audit answers are as follows:\n";
+                for (const key in this.answers) {
+                    const answerData = this.answers[key];
+                    const answerText = Array.isArray(answerData.answer) ? answerData.answer.join(', ') : answerData.answer;
+                    if (answerText) promptSummary += - ${answerData.question}: ${answerText}\n;
                 }
-                prompt = `You are a helpful legal tech assistant for a law firm named 'Silicon Law'. A potential client has just completed a legal compliance audit. Their final compliance score is ${this.calculateScore()}%. Based on their following answers, provide a brief, actionable summary of their top 3 legal risks and suggest concrete next steps. Frame the advice as helpful guidance, not as official legal advice. The tone should be professional, encouraging, and clear. Format the output as simple HTML using h4 for headings, ul and li for lists, and p for paragraphs. Do not wrap the entire response in a markdown block.\n\n${prompt}\n\nPlease provide the analysis now.`;
+                const prompt = You are a helpful legal tech assistant for a law firm named 'Silicon Law'. A potential client has just completed a legal compliance audit. Their final compliance score is ${this.calculateScore()}%. Based on their following answers, provide a brief, actionable summary of their top 3 legal risks and suggest concrete next steps. Frame the advice as helpful guidance, not as official legal advice. The tone should be professional, encouraging, and clear. Format the output as simple HTML using h4 for headings, ul and li for lists, and p for paragraphs. Do not wrap the entire response in a markdown block.\n\n${promptSummary}\n\nPlease provide the analysis now.;
                 try {
-                    const payload={contents:[{role:"user",parts:[{text:prompt}]}]};
-                    const apiKey=""; // your key
-                    const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-                    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-                    if(!res.ok) throw new Error(`Status ${res.status}`);
-                    const json=await res.json();
-                    const content=json.candidates?.[0]?.content?.parts?.[0];
-                    if(content) this.aiContent.innerHTML=content;
-                    else throw new Error("Bad structure");
-                } catch(err) {
-                    console.error("AI error:",err);
-                    this.aiContent.innerHTML=`<p class="text-red-500">Sorry, we couldn't generate recommendations at this time. Please try again later.</p>`;
+                    const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+                    const apiKey = ""; // Replace with your Google API key or move to environment variable
+                    const apiUrl = https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey};
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) throw new Error(API request failed with status ${response.status});
+                    const result = await response.json();
+                    if (result.candidates?.[0]?.content?.parts?.[0]) {
+                        this.aiContent.innerHTML = result.candidates[0].content.parts[0].text;
+                    } else {
+                        throw new Error("Invalid response structure from API.");
+                    }
+                } catch (error) {
+                    console.error("Error fetching AI recommendations:", error);
+                    this.aiContent.innerHTML = <p class="text-red-500">Sorry, we couldn't generate recommendations at this time. Please try again later.</p>;
                 } finally {
                     this.aiLoader.classList.add('hidden');
                     this.aiContent.classList.remove('hidden');
                 }
             },
-
-            // ← here’s the **only** edited method:
+            
             submitLead() {
                 const payload = {
-                    user_name: `${this.answers.firstName.answer} ${this.answers.lastName.answer}`,
+                    user_name: ${this.answers.firstName.answer} ${this.answers.lastName.answer},
                     user_email: this.answers.email.answer,
                     email: this.answers.email.answer,
                     company_name: this.answers.companyName.answer,
                     phone_number: this.answers.phone.answer || '',
                     compliance_score: this.calculateScore(),
-                    full_summary: Object.entries(this.answers)
-                        .map(([key, value]) =>
-                            `${value.question}: ${Array.isArray(value.answer)
-                                ? value.answer.join(', ')
-                                : value.answer}`
-                        )
-                        .join('\n')
+                    full_summary: Object.entries(this.answers).map(([key, value]) => ${value.question}: ${Array.isArray(value.answer) ? value.answer.join(', ') : value.answer}).join('\n')
                 };
 
                 fetch('/.netlify/functions/send-email', {
@@ -547,12 +555,11 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 })
-                .then(async response => {
-                    const data = await response.json().catch(() => ({}));
-                    if (response.ok) {
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === 'Emails sent successfully') {
                         this.showMessage('Emails sent successfully!', 'success');
                     } else {
-                        console.error('Email send failed:', data);
                         this.showMessage('Failed to send emails. Please try again.', 'error');
                     }
                 })
@@ -564,9 +571,7 @@
 
             showMessage(message, type = 'error') {
                 this.messageText.textContent = message;
-                this.messageBox.className = `fixed top-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transition-opacity duration-300 ${
-                    type === 'error' ? 'bg-red-500' : 'bg-green-500'
-                }`;
+                this.messageBox.className = fixed top-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transition-opacity duration-300 ${type === 'error' ? 'bg-red-500' : 'bg-green-500'};
                 this.messageBox.classList.remove('hidden');
                 setTimeout(() => {
                     this.messageBox.classList.add('hidden');
@@ -595,7 +600,7 @@
 
             attachEventListeners() {
                 this.formContainer.addEventListener('click', (e) => {
-                    if (e.target.dataset.action) this.handleNavigation(e);
+                    if(e.target.dataset.action) this.handleNavigation(e);
                 });
                 this.formContainer.addEventListener('change', (e) => {
                     if (e.target.type === 'file') this.handleFileUpload(e);
