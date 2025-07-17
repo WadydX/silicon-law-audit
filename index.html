@@ -19,12 +19,16 @@
     }
     .form-screen.previous { transform: translateX(-20px); }
     .radial-progress {
-      position: relative;
-      width: 200px; height: 200px;
-      border-radius: 50%;
-      background: conic-gradient(#4f46e5 var(--progress), #e5e7eb 0);
-      display: flex; align-items: center; justify-content: center;
-    }
+  position: relative;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  /* old hard-coded color removed */
+  background: conic-gradient(var(--gauge-color) var(--progress), #e5e7eb 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
     .radial-progress::before {
       content: '';
       position: absolute;
@@ -561,27 +565,46 @@
       },
 
       showResults() {
-        this.formContainer.classList.add('hidden');
-        this.progressContainer.classList.add('hidden');
-        this.resultsScreen.classList.remove('hidden');
-        const score=this.calculateScore();
-        document.getElementById('radial-progress-text').textContent=`${score}%`;
-        document.getElementById('radial-progress').style.setProperty('--progress',`${score}%`);
-        const msgEl=document.getElementById('compliance-message');
-        if(score<=49){
-          msgEl.textContent='Low compliance – urgent legal risks identified.';
-          msgEl.className='text-lg font-medium text-red-600 mb-8';
-        } else if(score<=79){
-          msgEl.textContent='Moderate compliance – consider tightening up some areas.';
-          msgEl.className='text-lg font-medium text-yellow-600 mb-8';
-        } else {
-          msgEl.textContent='Strong compliance – well done!';
-          msgEl.className='text-lg font-medium text-green-600 mb-8';
-        }
-        if(appConfig.enableAiRecommendations){
-          this.aiSection.classList.remove('hidden');
-        }
-      },
+  this.formContainer.classList.add('hidden');
+  this.progressContainer.classList.add('hidden');
+  this.resultsScreen.classList.remove('hidden');
+
+  const score = this.calculateScore() // e.g. 9
+  const gauge = document.getElementById('radial-progress');
+  const textEl = document.getElementById('radial-progress-text');
+  const messageEl = document.getElementById('compliance-message');
+
+  // update the % text
+  textEl.textContent = `${score}%`;
+
+  // pick color + message based on score
+  let color, msg, msgClass;
+  if (score <= 50) {
+    color    = '#dc2626';                // red-600
+    msg      = 'Low compliance – seek legal advice.';
+    msgClass = 'text-red-600';
+  } else if (score <= 90) {
+    color    = '#f59e0b';                // amber-500
+    msg      = 'Moderate compliance – consider tightening up some areas.';
+    msgClass = 'text-orange-600';
+  } else {
+    color    = '#16a34a';                // green-600
+    msg      = 'Solid compliance – well done!';
+    msgClass = 'text-green-600';
+  }
+
+  // set the gauge fill and message
+  gauge.style.setProperty('--gauge-color', color);
+  gauge.style.setProperty('--progress', `${score}%`);
+  messageEl.textContent = msg;
+  messageEl.className = `text-lg font-medium ${msgClass} mb-8`;
+
+  // show AI section if enabled
+  if (appConfig.enableAiRecommendations) {
+    this.aiSection.classList.remove('hidden');
+  }
+},
+
 
       async getAiRecommendations() {
         this.getAiRecommendationsBtn.classList.add('hidden');
