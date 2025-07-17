@@ -1,76 +1,617 @@
-<script>
-// --- CONFIGURATION ---
-const appConfig = {
-    version: '1.0',
-    enableAiRecommendations: true,
-    firmEmail: 'wadydsat@gmail.com'
-    // Remove emailJsPublicKey, emailJsServiceId, emailJsFirmTemplateId, emailJsClientTemplateId
-};
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silicon Law - Legal Compliance Audit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .form-screen {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+        .form-screen.hidden {
+            opacity: 0;
+            transform: translateX(20px);
+            pointer-events: none;
+            position: absolute;
+        }
+        .form-screen.previous {
+            transform: translateX(-20px);
+        }
+        .radial-progress {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: conic-gradient(#4f46e5 var(--progress), #e5e7eb 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .radial-progress::before {
+            content: '';
+            position: absolute;
+            width: 170px;
+            height: 170px;
+            background: white;
+            border-radius: 50%;
+        }
+        .radial-progress-text {
+            position: relative;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1f2937;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border-left-color: #ffffff;
+            animation: spin 1s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-2xl mx-auto p-4 md:p-8">
+        <div id="app-container" class="bg-white rounded-2xl shadow-lg p-6 md:p-10 transition-all duration-500">
+            <!-- Header -->
+            <div class="text-center mb-6">
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Silicon Law</h1>
+                <p class="text-gray-500 mt-1">Legal Compliance Audit</p>
+            </div>
 
-const auditConfig = {
-    questions: [
-        // ... (keep the same questions array)
-    ]
-};
+            <!-- Progress Bar -->
+            <div id="progress-container" class="w-full bg-gray-200 rounded-full h-2.5 mb-8">
+                <div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
 
-// --- APPLICATION LOGIC ---
-document.addEventListener('DOMContentLoaded', () => {
-    const app = {
-        currentQuestionIndex: 0,
-        answers: {},
-        formContainer: document.getElementById('form-container'),
-        progressBar: document.getElementById('progress-bar'),
-        progressContainer: document.getElementById('progress-container'),
-        resultsScreen: document.getElementById('results-screen'),
-        restartBtn: document.getElementById('restart-btn'),
-        messageBox: document.getElementById('message-box'),
-        messageText: document.getElementById('message-text'),
-        aiSection: document.getElementById('ai-section'),
-        getAiRecommendationsBtn: document.getElementById('get-ai-recommendations-btn'),
-        aiRecommendationsContainer: document.getElementById('ai-recommendations-container'),
-        aiLoader: document.getElementById('ai-loader'),
-        aiContent: document.getElementById('ai-content'),
-        
-        init() {
-            this.buildForm();
-            this.showQuestion(0);
-            this.attachEventListeners();
-        },
+            <!-- Form Screens Container -->
+            <div id="form-container" class="relative">
+                <!-- Questions will be injected here by JavaScript -->
+            </div>
 
-        // ... (keep getVisibleQuestions, buildForm, getDetailsScreenHTML, getQuestionHTML, showQuestion, updateProgress, handleNavigation, saveAnswer, handleFileUpload, handleConditionalUpload, calculateScore, showResults, getAiRecommendations, showMessage, restart, attachEventListeners)
+            <!-- Results Screen -->
+            <div id="results-screen" class="hidden text-center">
+                <h2 class="text-2xl font-bold mb-4">Your Compliance Score</h2>
+                <div class="flex justify-center my-8">
+                    <div id="radial-progress" class="radial-progress" style="--progress: 0%">
+                        <span id="radial-progress-text" class="radial-progress-text">0%</span>
+                    </div>
+                </div>
+                <p id="compliance-message" class="text-lg font-medium text-gray-700 mb-8"></p>
 
-        submitLead() {
-            const formData = new FormData();
-            formData.append('user_name', `${this.answers.firstName.answer} ${this.answers.lastName.answer}`);
-            formData.append('user_email', this.answers.email.answer);
-            formData.append('email', this.answers.email.answer);
-            formData.append('company_name', this.answers.companyName.answer);
-            formData.append('phone_number', this.answers.phone.answer || '');
-            formData.append('compliance_score', this.calculateScore());
-            formData.append('full_summary', Object.entries(this.answers).map(([key, value]) => `${value.question}: ${Array.isArray(value.answer) ? value.answer.join(', ') : value.answer}`).join('\n'));
+                <!-- AI Recommendations Section (Conditionally Displayed) -->
+                <div id="ai-section" class="my-8 hidden">
+                    <button id="get-ai-recommendations-btn" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition duration-300">
+                        Get AI-Powered Recommendations
+                    </button>
+                    <div id="ai-recommendations-container" class="hidden mt-6 text-left bg-gray-100 p-6 rounded-lg">
+                        <div id="ai-loader" class="flex justify-center items-center">
+                            <div class="loader" style="border-left-color: #4f46e5;"></div>
+                        </div>
+                        <div id="ai-content"></div>
+                    </div>
+                </div>
 
-            // Send to Netlify Function
-            fetch('/.netlify/functions/send-email', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.message === 'Emails sent successfully') {
-                    this.showMessage('Emails sent successfully!', 'success');
-                } else {
-                    this.showMessage('Failed to send emails. Please try again.', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error submitting lead:', error);
-                this.showMessage('Could not send emails. Please try again later.', 'error');
-            });
-        },
+                <button id="restart-btn" class="mt-8 text-indigo-600 hover:underline">Start Over</button>
+            </div>
+            
+            <!-- Message Box for notifications -->
+            <div id="message-box" class="hidden fixed top-5 right-5 bg-red-500 text-white py-2 px-4 rounded-lg shadow-lg transition-opacity duration-300">
+                <p id="message-text"></p>
+            </div>
+        </div>
+    </div>
 
-        // ... (keep other methods)
+    <script>
+    // --- CONFIGURATION ---
+    const appConfig = {
+        version: '1.0',
+        enableAiRecommendations: true,
+        firmEmail: 'wadydsat@gmail.com'
     };
 
-    app.init();
-});
-</script>
+    const auditConfig = {
+        questions: [
+            { id: 'companyName', section: 'Your Details', text: 'Company Name', type: 'text', weight: 0, required: true },
+            { id: 'firstName', section: 'Your Details', text: 'First Name', type: 'text', weight: 0, required: true },
+            { id: 'lastName', section: 'Your Details', text: 'Last Name', type: 'text', weight: 0, required: true },
+            { id: 'email', section: 'Your Details', text: 'Email', type: 'email', weight: 0, required: true },
+            { id: 'phone', section: 'Your Details', text: 'Phone Number', type: 'tel', weight: 0, required: false },
+            { id: 'shareholdersAgreement', section: 'Corporate', text: 'Do you have shareholders agreement in place?', type: 'radio', weight: 10, required: true, options: [{ text: 'Yes', score: 10, triggerUpload: true }, { text: 'No', score: 0 }, { text: 'No, I am the sole shareholder', score: 10 }] },
+            { id: 'corporateStructure', section: 'Corporate', text: 'Have you ever considered a corporate group structure?', type: 'textarea', weight: 5, required: true, scoreLogic: (value) => value.length > 5 ? 5 : 0 },
+            { id: 'insurance', section: 'Compliance', text: 'Do you have insurance?', type: 'checkbox', weight: 10, required: true, options: [{ text: 'I do not have any insurance', score: 0 }, { text: 'Employers Liability Insurance', score: 2.5 }, { text: 'Public Liability', score: 2.5 }, { text: 'Professional Indemnity', score: 2.5 }, { text: 'Cyber Cover', score: 2.5 }, { text: 'Other', score: 0 }] },
+            { id: 'websiteUrl', section: 'Compliance', text: 'What is your company website URL?', type: 'url', weight: 0, required: true },
+            { id: 'cookieBanner', section: 'Compliance', text: 'Does your website have a consent/cookie banner?', type: 'radio', weight: 5, required: true, options: [{ text: 'Yes', score: 5 }, { text: 'No', score: 0 }, { text: 'Unsure', score: 1 }] },
+            { id: 'privacyPolicy', section: 'Compliance', text: 'Do you have a privacy policy?', type: 'radio', weight: 10, required: true, options: [{ text: 'Yes', score: 10, triggerUpload: true }, { text: 'No', score: 0 }] },
+            { id: 'cookiePolicy', section: 'Compliance', text: 'Do you have a cookie policy?', type: 'radio', weight: 5, required: true, options: [{ text: 'Yes', score: 5, triggerUpload: true }, { text: 'No', score: 0 }] },
+            { id: 'breachPolicy', section: 'Compliance', text: 'Do you have a breach policy and notification procedure?', type: 'radio', weight: 5, required: true, options: [{ text: 'Yes', score: 5, triggerUpload: true }, { text: 'No', score: 0 }] },
+            { id: 'infoSecPolicy', section: 'Compliance', text: 'Do you have an information security policy?', type: 'radio', weight: 5, required: true, options: [{ text: 'Yes', score: 5, triggerUpload: true }, { text: 'No', score: 0 }] },
+            { id: 'dpTraining', section: 'Compliance', text: 'Do you provide annual data protection training to your staff?', type: 'radio', weight: 5, required: true, options: [{ text: 'Yes', score: 5 }, { text: 'No', score: 0 }, { text: 'I do not have staff', score: 5 }] },
+            { id: 'taxAdvisor', section: 'Tax and Accountancy', text: 'Have you ever worked with, or received assistance from a tax advisor?', type: 'radio', weight: 5, required: true, options: [{ text: 'Yes, I am all set', score: 5 }, { text: 'Yes, but I would like to speak to one again', score: 3 }, { text: 'No and I do not wish to speak to one', score: 0 }, { text: 'No, but I would like to speak to one', score: 1 }] },
+            { id: 'hasAccountant', section: 'Tax and Accountancy', text: 'Do you have an accountant?', type: 'radio', weight: 5, required: true, options: [{ text: 'Yes', score: 5 }, { text: 'No', score: 0 }] },
+            { id: 'proactiveAdvice', section: 'Tax and Accountancy', text: 'Does your accountant give you proactive tax advice?', type: 'radio', weight: 5, required: true, condition: { questionId: 'hasAccountant', value: 'Yes' }, options: [{ text: 'Yes', score: 5 }, { text: 'No', score: 1 }] },
+            { id: 'hasEmployees', section: 'Staff', text: 'Do you have employees?', type: 'radio', weight: 0, required: true, options: [{ text: 'Yes', score: 0 }, { text: 'No', score: 0 }] },
+            { id: 'staffHandbook', section: 'Staff', text: 'Do you have staff handbook?', type: 'radio', weight: 10, required: true, condition: { questionId: 'hasEmployees', value: 'Yes' }, options: [{ text: 'Yes', score: 10, triggerUpload: true }, { text: 'No', score: 0 }] },
+            { id: 'employeeLocation', section: 'Staff', text: 'Where are your employees located?', type: 'checkbox', weight: 0, required: true, condition: { questionId: 'hasEmployees', value: 'Yes' }, options: [{ text: 'UK', score: 0 }, { text: 'EEA', score: 0 }, { text: 'USA', score: 0 }, { text: 'Global', score: 0 }] },
+            { id: 'useConsultants', section: 'Staff', text: 'Do you use consultants or contractors?', type: 'radio', weight: 0, required: true, options: [{ text: 'Yes', score: 0 }, { text: 'No', score: 0 }] },
+            { id: 'consultantAgreements', section: 'Staff', text: 'Do you have consultancy or contractor agreements?', type: 'radio', weight: 10, required: true, condition: { questionId: 'useConsultants', value: 'Yes' }, options: [{ text: 'Yes', score: 10, triggerUpload: true }, { text: 'No', score: 0 }] },
+            { id: 'consultantLocation', section: 'Staff', text: 'Where are your consultants and contractors located?', type: 'checkbox', weight: 0, required: true, condition: { questionId: 'useConsultants', value: 'Yes' }, options: [{ text: 'UK', score: 0 }, { text: 'EEA', score: 0 }, { text: 'USA', score: 0 }, { text: 'Global', score: 0 }] },
+            { id: 'ipAssignment', section: 'Staff', text: 'Do you have an IP Assignment Agreement that all your employees, consultants, contractors, and company officers, such as directors (including yourself), sign?', type: 'radio', weight: 10, required: true, options: [{ text: 'Yes', score: 10, triggerUpload: true }, { text: 'No', score: 0 }] },
+            { id: 'annualRevenue', section: 'Commercial', text: 'What is your annual revenue?', type: 'select', weight: 0, required: true, options: [{ text: 'Please Select', score: 0 }, { text: '£0 - £50,000', score: 0 }, { text: '£50,001 - £250,000', score: 0 }, { text: '£250,001 - £1,000,000', score: 0 }, { text: '£1,000,001+', score: 0 }] },
+            { id: 'clientLocation', section: 'Commercial', text: 'Where are your clients located?', type: 'checkbox', weight: 0, required: true, options: [{ text: 'UK', score: 0 }, { text: 'EEA', score: 0 }, { text: 'USA', score: 0 }, { text: 'Global', score: 0 }] },
+            { id: 'serviceModel', section: 'Commercial', text: 'What is your service model?', type: 'radio', weight: 0, required: true, options: [{ text: 'B2B', score: 0 }, { text: 'B2C', score: 0 }, { text: 'Both', score: 0 }, { text: 'Other', score: 0 }] },
+            { id: 'sellType', section: 'Commercial', text: 'What do you sell?', type: 'checkbox', weight: 0, required: true, options: [{ text: 'Physical Goods', score: 0 }, { text: 'Digital Products', score: 0 }, { text: 'Services', score: 0 }, { text: 'Software', score: 0 }, { text: 'Other', score: 0 }] },
+            { id: 'hasTerms', section: 'Commercial', text: 'Do you have terms and conditions for what you sell?', type: 'radio', weight: 10, required: true, options: [{ text: 'Yes', score: 10, triggerUpload: true }, { text: 'No', score: 0 }] },
+            { id: 'focusArea', section: 'Submission', text: 'Is there anything you\'d like to add or any specific you\'d like us to focus on?', type: 'textarea', weight: 0, required: false }
+        ]
+    };
+
+    // --- APPLICATION LOGIC ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const app = {
+            currentQuestionIndex: 0,
+            answers: {},
+            formContainer: document.getElementById('form-container'),
+            progressBar: document.getElementById('progress-bar'),
+            progressContainer: document.getElementById('progress-container'),
+            resultsScreen: document.getElementById('results-screen'),
+            restartBtn: document.getElementById('restart-btn'),
+            messageBox: document.getElementById('message-box'),
+            messageText: document.getElementById('message-text'),
+            aiSection: document.getElementById('ai-section'),
+            getAiRecommendationsBtn: document.getElementById('get-ai-recommendations-btn'),
+            aiRecommendationsContainer: document.getElementById('ai-recommendations-container'),
+            aiLoader: document.getElementById('ai-loader'),
+            aiContent: document.getElementById('ai-content'),
+            
+            init() {
+                this.buildForm();
+                this.showQuestion(0);
+                this.attachEventListeners();
+            },
+
+            getVisibleQuestions() {
+                const nonDetailQuestions = auditConfig.questions.filter(q => q.section !== 'Your Details');
+                return nonDetailQuestions.filter(q => {
+                    if (!q.condition) return true;
+                    const conditionAnswer = this.answers[q.condition.questionId];
+                    return conditionAnswer && conditionAnswer.answer === q.condition.value;
+                });
+            },
+
+            buildForm() {
+                this.formContainer.innerHTML = '';
+                
+                const detailQuestions = auditConfig.questions.filter(q => q.section === 'Your Details');
+                const detailsScreen = document.createElement('div');
+                detailsScreen.id = `question-0`;
+                detailsScreen.className = 'form-screen';
+                detailsScreen.innerHTML = this.getDetailsScreenHTML(detailQuestions);
+                this.formContainer.appendChild(detailsScreen);
+
+                const otherQuestions = auditConfig.questions.filter(q => q.section !== 'Your Details');
+                otherQuestions.forEach((q, index) => {
+                    const screen = document.createElement('div');
+                    screen.id = `question-${index + 1}`;
+                    screen.className = 'form-screen hidden';
+                    screen.innerHTML = this.getQuestionHTML(q, index + 1);
+                    this.formContainer.appendChild(screen);
+                });
+            },
+
+            getDetailsScreenHTML(detailQuestions) {
+                const optionsHTML = detailQuestions.map(q => {
+                    const requiredIndicator = q.required ? '<span class="text-red-500 ml-1">*</span>' : '';
+                    return `
+                        <div>
+                            <label for="q_${q.id}" class="block text-sm font-medium text-gray-700 mb-1">${q.text}${requiredIndicator}</label>
+                            <input type="${q.type}" id="q_${q.id}" name="q_${q.id}" placeholder="${q.text}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="text-center">
+                        <p class="text-sm font-semibold text-indigo-600 mb-2">Your Details</p>
+                        <h3 class="text-xl md:text-2xl font-semibold mb-6">Let's start with some basic information</h3>
+                    </div>
+                    <div class="space-y-4">${optionsHTML}</div>
+                    <div class="flex justify-end mt-8">
+                        <button data-action="next" data-index="0" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">Next</button>
+                    </div>
+                `;
+            },
+
+            getQuestionHTML(q, index) {
+                let optionsHTML = '';
+                const inputName = `q_${q.id}`;
+                const requiredIndicator = q.required ? '<span class="text-red-500 ml-1">*</span>' : '';
+
+                switch (q.type) {
+                    case 'radio':
+                        optionsHTML = q.options.map(opt => `<label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500"><input type="radio" name="${inputName}" value="${opt.text}" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"><span class="ml-3 text-gray-700">${opt.text}</span></label>`).join('');
+                        break;
+                    case 'checkbox':
+                        optionsHTML = q.options.map(opt => `<label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500"><input type="checkbox" name="${inputName}" value="${opt.text}" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"><span class="ml-3 text-gray-700">${opt.text}</span></label>`).join('');
+                        break;
+                    case 'select':
+                        optionsHTML = `<select name="${inputName}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">${q.options.map(opt => `<option value="${opt.text}">${opt.text}</option>`).join('')}</select>`;
+                        break;
+                    case 'textarea':
+                        optionsHTML = `<textarea name="${inputName}" rows="4" placeholder="Please share further details..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>`;
+                        break;
+                    case 'url':
+                        optionsHTML = `<input type="url" name="${inputName}" placeholder="https://example.com" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">`;
+                        break;
+                }
+
+                const uploadHTML = q.options?.some(o => o.triggerUpload) ? `<div id="upload-container-${q.id}" class="hidden mt-4 p-4 border-2 border-dashed rounded-lg"><label for="file-upload-${q.id}" class="cursor-pointer text-indigo-600 hover:text-indigo-800"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg><span>Optional: Upload the document</span></label><input id="file-upload-${q.id}" type="file" class="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"><p id="file-name-${q.id}" class="text-sm text-gray-500 mt-2"></p></div>` : '';
+                
+                const isLastQuestion = index === auditConfig.questions.filter(q => q.section !== 'Your Details').length;
+                const nextButtonText = isLastQuestion ? 'Submit & See Results' : 'Next';
+
+                return `<div class="text-center"><p class="text-sm font-semibold text-indigo-600 mb-2">${q.section}</p><h3 class="text-xl md:text-2xl font-semibold mb-6">${q.text}${requiredIndicator}</h3></div><div class="space-y-4">${optionsHTML}</div>${uploadHTML}<div class="flex justify-between mt-8"><button data-action="prev" data-index="${index}" class="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-300">Back</button><button data-action="next" data-index="${index}" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300 flex items-center justify-center">${nextButtonText}</button></div>`;
+            },
+            
+            showQuestion(index, direction = 'next') {
+                const currentScreen = document.getElementById(`question-${this.currentQuestionIndex}`);
+                if (currentScreen) {
+                    currentScreen.classList.add('hidden', direction === 'next' ? 'previous' : 'next');
+                }
+                
+                let nextIndex = index;
+                if (index > 0) {
+                    const visibleQuestions = this.getVisibleQuestions();
+                    const allNonDetailQuestions = auditConfig.questions.filter(q => q.section !== 'Your Details');
+                    let targetQuestion = allNonDetailQuestions[index - 1];
+
+                    let visibleIndex = visibleQuestions.indexOf(targetQuestion);
+                    if (visibleIndex === -1) {
+                        if(direction === 'next') {
+                            targetQuestion = visibleQuestions.find(vq => allNonDetailQuestions.indexOf(vq) >= index -1);
+                        } else {
+                            const reversedVisible = [...visibleQuestions].reverse();
+                            targetQuestion = reversedVisible.find(vq => allNonDetailQuestions.indexOf(vq) <= index -1);
+                        }
+                    }
+                    nextIndex = targetQuestion ? allNonDetailQuestions.indexOf(targetQuestion) + 1 : -1;
+                }
+                
+                const nextScreen = document.getElementById(`question-${nextIndex}`);
+                if (nextScreen) {
+                    nextScreen.classList.remove('hidden', 'previous', 'next');
+                    this.currentQuestionIndex = nextIndex;
+                } else {
+                    this.showResults();
+                }
+
+                this.updateProgress();
+            },
+
+            updateProgress() {
+                const questionSteps = this.getVisibleQuestions();
+                const allNonDetailQuestions = auditConfig.questions.filter(q => q.section !== 'Your Details');
+                const currentQuestionObject = allNonDetailQuestions[this.currentQuestionIndex - 1];
+                const currentStep = questionSteps.indexOf(currentQuestionObject);
+
+                if (this.currentQuestionIndex === 0) {
+                    this.progressBar.style.width = '0%';
+                } else {
+                    const progress = ((currentStep + 1) / questionSteps.length) * 100;
+                    this.progressBar.style.width = `${progress}%`;
+                }
+            },
+
+            handleNavigation(e) {
+                const action = e.target.dataset.action;
+                if (!action) return;
+                
+                const index = parseInt(e.target.dataset.index, 10);
+                const button = e.target;
+
+                if (action === 'next') {
+                    if (!this.saveAnswer(index)) return;
+                    
+                    const allQuestions = auditConfig.questions.filter(q => q.section !== 'Your Details');
+                    const isLastQuestion = index === allQuestions.length;
+
+                    if (isLastQuestion) {
+                        button.disabled = true;
+                        button.innerHTML = `<div class="loader"></div>`;
+                        this.submitLead();
+                        setTimeout(() => {
+                            this.showResults();
+                        }, 500);
+                    } else {
+                        this.showQuestion(index + 1, 'next');
+                    }
+                } else if (action === 'prev') {
+                    this.showQuestion(index - 1, 'prev');
+                }
+            },
+
+            saveAnswer(index) {
+                if (index === 0) {
+                    const detailQuestions = auditConfig.questions.filter(q => q.section === 'Your Details');
+                    let allValid = true;
+                    for (const q of detailQuestions) {
+                        const input = document.getElementById(`q_${q.id}`);
+                        const value = input.value.trim();
+                        if (q.required && !value) {
+                            this.showMessage(`${q.text} is required.`);
+                            allValid = false;
+                            break;
+                        }
+                        if (q.type === 'email' && value && !/^\S+@\S+\.\S+$/.test(value)) {
+                            this.showMessage('Please enter a valid email address.');
+                            allValid = false;
+                            break;
+                        }
+                        this.answers[q.id] = { question: q.text, answer: value };
+                    }
+                    return allValid;
+                }
+
+                const allQuestions = auditConfig.questions.filter(q => q.section !== 'Your Details');
+                const question = allQuestions[index - 1];
+                if (!question) return false;
+
+                const inputName = `q_${question.id}`;
+                const inputs = document.querySelectorAll(`[name="${inputName}"]`);
+                let value;
+                let isValid = false;
+
+                switch (question.type) {
+                    case 'radio':
+                        const checkedRadio = document.querySelector(`[name="${inputName}"]:checked`);
+                        if (checkedRadio) {
+                            value = checkedRadio.value;
+                            isValid = true;
+                        }
+                        break;
+                    case 'checkbox':
+                        value = Array.from(inputs).filter(i => i.checked).map(i => i.value);
+                        if (question.required && value.length === 0) {
+                            this.showMessage('Please select at least one option.');
+                            return false;
+                        }
+                        isValid = true;
+                        break;
+                    case 'select':
+                        value = document.querySelector(`[name="${inputName}"]`).value;
+                        if (question.required && value === "Please Select") {
+                            this.showMessage('Please make a selection.');
+                            return false;
+                        }
+                        isValid = true;
+                        break;
+                    case 'textarea':
+                    case 'url':
+                        value = inputs[0].value.trim();
+                        if (question.required && !value) {
+                            this.showMessage('This field is required.');
+                            return false;
+                        }
+                        isValid = true;
+                        break;
+                }
+
+                if (question.required && !isValid) {
+                    this.showMessage('Please select an option to continue.');
+                    return false;
+                }
+
+                this.answers[question.id] = { question: question.text, answer: value };
+                return true;
+            },
+
+            handleFileUpload(e) {
+                const fileInput = e.target;
+                const qid = fileInput.id.replace('file-upload-', '');
+                const fileNameEl = document.getElementById(`file-name-${qid}`);
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    fileNameEl.textContent = `Selected: ${file.name}`;
+                    this.answers[`${qid}_file`] = { question: `File for ${qid}`, answer: file.name };
+                }
+            },
+
+            handleConditionalUpload(e) {
+                const radio = e.target;
+                if (radio.type !== 'radio') return;
+                const qid = radio.name.replace('q_', '');
+                const question = auditConfig.questions.find(q => q.id === qid);
+                if (!question) return;
+                const selectedOption = question.options.find(opt => opt.text === radio.value);
+                const uploadContainer = document.getElementById(`upload-container-${qid}`);
+                if (uploadContainer && selectedOption && selectedOption.triggerUpload) {
+                    uploadContainer.classList.remove('hidden');
+                } else if (uploadContainer) {
+                    uploadContainer.classList.add('hidden');
+                }
+            },
+
+            calculateScore() {
+                let totalScore = 0;
+                let maxScore = 0;
+                this.getVisibleQuestions().forEach(q => {
+                    if (q.weight > 0) {
+                        maxScore += q.weight;
+                        const answerData = this.answers[q.id];
+                        if (!answerData) return;
+
+                        if (q.scoreLogic) {
+                            totalScore += q.scoreLogic(answerData.answer);
+                        } else if (q.options) {
+                            let currentOptionScore = 0;
+                            if (q.type === 'checkbox') {
+                                if (Array.isArray(answerData.answer)) {
+                                    answerData.answer.forEach(ans => {
+                                        const opt = q.options.find(o => o.text === ans);
+                                        if (opt) currentOptionScore += opt.score;
+                                    });
+                                }
+                            } else {
+                                const opt = q.options.find(o => o.text === answerData.answer);
+                                if (opt) currentOptionScore = opt.score;
+                            }
+                            
+                            let maxOptionScore;
+                            if (q.type === 'checkbox') {
+                                maxOptionScore = q.options.reduce((sum, opt) => sum + (opt.score > 0 ? opt.score : 0), 0);
+                            } else {
+                                maxOptionScore = Math.max(...q.options.map(o => o.score || 0));
+                            }
+
+                            if(maxOptionScore > 0) {
+                                totalScore += (currentOptionScore / maxOptionScore) * q.weight;
+                            }
+                        }
+                    }
+                });
+                return maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 100;
+            },
+
+            showResults() {
+                this.formContainer.classList.add('hidden');
+                this.progressContainer.classList.add('hidden');
+                this.resultsScreen.classList.remove('hidden');
+                const score = this.calculateScore();
+                document.getElementById('radial-progress-text').textContent = `${score}%`;
+                document.getElementById('radial-progress').style.setProperty('--progress', `${score}%`);
+                const messageEl = document.getElementById('compliance-message');
+                if (score <= 49) {
+                    messageEl.textContent = 'Low compliance – urgent legal risks identified.';
+                    messageEl.className = 'text-lg font-medium text-red-600 mb-8';
+                } else if (score <= 79) {
+                    messageEl.textContent = 'Moderate compliance – consider tightening up some areas.';
+                    messageEl.className = 'text-lg font-medium text-yellow-600 mb-8';
+                } else {
+                    messageEl.textContent = 'Strong compliance – well done!';
+                    messageEl.className = 'text-lg font-medium text-green-600 mb-8';
+                }
+                if (appConfig.enableAiRecommendations) {
+                    this.aiSection.classList.remove('hidden');
+                }
+            },
+
+            async getAiRecommendations() {
+                this.getAiRecommendationsBtn.classList.add('hidden');
+                this.aiRecommendationsContainer.classList.remove('hidden');
+                this.aiLoader.classList.remove('hidden');
+                this.aiContent.classList.add('hidden');
+                let promptSummary = "The user's audit answers are as follows:\n";
+                for (const key in this.answers) {
+                    const answerData = this.answers[key];
+                    const answerText = Array.isArray(answerData.answer) ? answerData.answer.join(', ') : answerData.answer;
+                    if (answerText) promptSummary += `- ${answerData.question}: ${answerText}\n`;
+                }
+                const prompt = `You are a helpful legal tech assistant for a law firm named 'Silicon Law'. A potential client has just completed a legal compliance audit. Their final compliance score is ${this.calculateScore()}%. Based on their following answers, provide a brief, actionable summary of their top 3 legal risks and suggest concrete next steps. Frame the advice as helpful guidance, not as official legal advice. The tone should be professional, encouraging, and clear. Format the output as simple HTML using h4 for headings, ul and li for lists, and p for paragraphs. Do not wrap the entire response in a markdown block.\n\n${promptSummary}\n\nPlease provide the analysis now.`;
+                try {
+                    const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+                    const apiKey = ""; // Replace with your Google API key or move to environment variable
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+                    const result = await response.json();
+                    if (result.candidates?.[0]?.content?.parts?.[0]) {
+                        this.aiContent.innerHTML = result.candidates[0].content.parts[0].text;
+                    } else {
+                        throw new Error("Invalid response structure from API.");
+                    }
+                } catch (error) {
+                    console.error("Error fetching AI recommendations:", error);
+                    this.aiContent.innerHTML = `<p class="text-red-500">Sorry, we couldn't generate recommendations at this time. Please try again later.</p>`;
+                } finally {
+                    this.aiLoader.classList.add('hidden');
+                    this.aiContent.classList.remove('hidden');
+                }
+            },
+            
+            submitLead() {
+                const formData = new FormData();
+                formData.append('user_name', `${this.answers.firstName.answer} ${this.answers.lastName.answer}`);
+                formData.append('user_email', this.answers.email.answer);
+                formData.append('email', this.answers.email.answer);
+                formData.append('company_name', this.answers.companyName.answer);
+                formData.append('phone_number', this.answers.phone.answer || '');
+                formData.append('compliance_score', this.calculateScore());
+                formData.append('full_summary', Object.entries(this.answers).map(([key, value]) => `${value.question}: ${Array.isArray(value.answer) ? value.answer.join(', ') : value.answer}`).join('\n'));
+
+                // Send to Netlify Function
+                fetch('/.netlify/functions/send-email', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === 'Emails sent successfully') {
+                        this.showMessage('Emails sent successfully!', 'success');
+                    } else {
+                        this.showMessage('Failed to send emails. Please try again.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error submitting lead:', error);
+                    this.showMessage('Could not send emails. Please try again later.', 'error');
+                });
+            },
+
+            showMessage(message, type = 'error') {
+                this.messageText.textContent = message;
+                this.messageBox.className = `fixed top-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transition-opacity duration-300 ${type === 'error' ? 'bg-red-500' : 'bg-green-500'}`;
+                this.messageBox.classList.remove('hidden');
+                setTimeout(() => {
+                    this.messageBox.classList.add('hidden');
+                }, 3000);
+            },
+            
+            restart() {
+                this.currentQuestionIndex = 0;
+                this.answers = {};
+                this.resultsScreen.classList.add('hidden');
+                this.formContainer.classList.remove('hidden');
+                this.progressContainer.classList.remove('hidden');
+                
+                this.aiSection.classList.add('hidden');
+                this.getAiRecommendationsBtn.classList.remove('hidden');
+                this.aiRecommendationsContainer.classList.add('hidden');
+                this.aiContent.innerHTML = '';
+                
+                this.buildForm();
+                const allScreens = this.formContainer.querySelectorAll('.form-screen');
+                allScreens.forEach((screen, index) => {
+                    screen.classList.toggle('hidden', index !== 0);
+                });
+                this.updateProgress();
+            },
+
+            attachEventListeners() {
+                this.formContainer.addEventListener('click', (e) => {
+                    if(e.target.dataset.action) this.handleNavigation(e);
+                });
+                this.formContainer.addEventListener('change', (e) => {
+                    if (e.target.type === 'file') this.handleFileUpload(e);
+                    if (e.target.type === 'radio') this.handleConditionalUpload(e);
+                });
+                this.restartBtn.addEventListener('click', () => this.restart());
+                this.getAiRecommendationsBtn.addEventListener('click', () => this.getAiRecommendations());
+            }
+        };
+
+        app.init();
+    });
+    </script>
+</body>
+</html>
