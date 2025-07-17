@@ -1,4 +1,4 @@
-const { send } = require('@emailjs/nodejs');
+const fetch = require('node-fetch');
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
@@ -64,24 +64,36 @@ exports.handler = async (event, context) => {
       full_summary
     };
 
-    console.log('Sending firm email with params:', firmParams);
-    const firmResponse = await send({
-      service_id: serviceId,
-      template_id: firmTemplateId,
-      user_id: trimmedPublicKey,
-      template_params: firmParams
+    const firmResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        service_id: serviceId,
+        template_id: firmTemplateId,
+        user_id: trimmedPublicKey,
+        template_params: firmParams
+      })
     });
-    console.log('Firm email response:', firmResponse);
+    const firmResult = await firmResponse.json();
+    console.log('Firm email response:', firmResult);
 
     const clientParams = { ...firmParams };
-    console.log('Sending client email with params:', clientParams);
-    const clientResponse = await send({
-      service_id: serviceId,
-      template_id: clientTemplateId,
-      user_id: trimmedPublicKey,
-      template_params: clientParams
+    const clientResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        service_id: serviceId,
+        template_id: clientTemplateId,
+        user_id: trimmedPublicKey,
+        template_params: clientParams
+      })
     });
-    console.log('Client email response:', clientResponse);
+    const clientResult = await clientResponse.json();
+    console.log('Client email response:', clientResult);
+
+    if (!firmResult.success || !clientResult.success) {
+      throw new Error('Email sending failed');
+    }
 
     console.log('Emails sent successfully');
     return {
