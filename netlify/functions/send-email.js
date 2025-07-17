@@ -2,30 +2,28 @@ const { send } = require('@emailjs/nodejs');
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method Not Allowed' })
-    };
+    return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
-  const {
-    user_name,
-    user_email,
-    email,
-    company_name,
-    phone_number,
-    compliance_score,
-    full_summary
-  } = JSON.parse(event.body);
+  const formData = new URLSearchParams(await new Promise((resolve) => {
+    const chunks = [];
+    event.on('data', chunk => chunks.push(chunk));
+    event.on('end', () => resolve(Buffer.concat(chunks).toString()));
+  }));
+  const params = {
+    user_name: formData.get('user_name'),
+    user_email: formData.get('user_email'),
+    email: formData.get('email'),
+    company_name: formData.get('company_name'),
+    phone_number: formData.get('phone_number') || '',
+    compliance_score: parseInt(formData.get('compliance_score'), 10) || 0,
+    full_summary: formData.get('full_summary')
+  };
 
-  console.log('Received request with data:', { user_name, user_email, company_name, full_summary });
+  console.log('Received params:', params);
 
-  if (!user_name || !user_email || !company_name || !full_summary) {
-    console.log('Missing required fields:', { user_name, user_email, company_name, full_summary });
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'Missing required fields' })
-    };
+  if (!params.user_name || !params.user_email || !params.company_name || !params.full_summary) {
+    return { statusCode: 400, body: JSON.stringify({ error: 'Missing required fields' }) };
   }
 
   const serviceId = process.env.EMAILJS_SERVICE_ID;
@@ -36,72 +34,36 @@ exports.handler = async (event, context) => {
   console.log('Environment variables present:', { serviceId: !!serviceId, firmTemplateId: !!firmTemplateId, clientTemplateId: !!clientTemplateId, publicKey: !!publicKey });
 
   if (!serviceId || !firmTemplateId || !clientTemplateId || !publicKey) {
-    console.error('Missing environment variables:', { serviceId, firmTemplateId, clientTemplateId, publicKey });
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Missing configuration. Please check environment variables.' })
-    };
+    return { statusCode: 500, body: JSON.stringify({ error: 'Missing configuration' }) };
   }
 
   try {
-    const trimmedPublicKey = publicKey ? publicKey.trim() : null;
-    console.log('Trimmed publicKey value (last 2 chars masked):', trimmedPublicKey ? `${trimmedPublicKey.slice(0, -2)}XX` : 'null');
-    if (!trimmedPublicKey || trimmedPublicKey.length === 0) {
-      console.error('Public key is empty or invalid after trim:', publicKey);
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Invalid public key configuration.' })
-      };
-    }
+    const trimmedPublicKey = publicKey.trim();
+    console.log('Trimmed publicKey value (last 2 chars masked):', `${trimmedPublicKey.slice(0, -2)}XX`);
 
-    const firmParams = {
-      user_name,
-      user_email,
-      email,
-      company_name,
-      phone_number: phone_number || '',
-      compliance_score,
-      full_summary
-    };
-
-    console.log('Sending firm email with params:', firmParams);
     const firmResponse = await send({
       service_id: serviceId,
       template_id: firmTemplateId,
       user_id: trimmedPublicKey,
-      template_params: firmParams
+      template_params: params
     });
     console.log('Firm email response:', firmResponse);
 
-    const clientParams = { ...firmParams };
-    console.log('Sending client email with params:', clientParams);
     const clientResponse = await send({
       service_id: serviceId,
       template_id: clientTemplateId,
       user_id: trimmedPublicKey,
-      template_params: clientParams
+      template_params: params
     });
     console.log('Client email response:', clientResponse);
 
     if (!firmResponse.success || !clientResponse.success) {
-      throw new Error('Email sending failed: ' + (firmResponse.error || clientResponse.error));
+      throw new Error(firmResponse.error || clientResponse.error);
     }
 
-    console.log('Emails sent successfully');
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: 'Emails sent successfully' })
-    };
+    return { statusCode: 200, body: JSON.stringify({ message: 'Emails sent successfully' }) };
   } catch (error) {
-    console.error('Email sending failed:', {
-      error: error,
-      message: error?.message || 'No message',
-      stack: error?.stack || 'No stack',
-      code: error?.code || 'No code'
-    });
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Could not send emails. Please try again later.' })
-    };
+    console.error('Email sending failed:', { error, message: error.message });
+    return { statusCode: 500, body: JSON.stringify({ error: 'Could not send emails' }) };
   }
 };
