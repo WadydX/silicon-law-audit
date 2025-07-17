@@ -74,7 +74,9 @@ exports.handler = async (event, context) => {
         template_params: firmParams
       })
     });
-    const firmResult = await firmResponse.json();
+    const firmText = await firmResponse.text(); // Log raw text first
+    console.log('Firm email raw response:', firmText);
+    const firmResult = await firmResponse.json(); // Then parse
     console.log('Firm email response:', firmResult);
 
     const clientParams = { ...firmParams };
@@ -88,6 +90,8 @@ exports.handler = async (event, context) => {
         template_params: clientParams
       })
     });
+    const clientText = await clientResponse.text();
+    console.log('Client email raw response:', clientText);
     const clientResult = await clientResponse.json();
     console.log('Client email response:', clientResult);
 
