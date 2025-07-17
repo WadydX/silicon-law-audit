@@ -540,19 +540,21 @@
             },
             
             submitLead() {
-                const formData = new FormData();
-                formData.append('user_name', `${this.answers.firstName.answer} ${this.answers.lastName.answer}`);
-                formData.append('user_email', this.answers.email.answer);
-                formData.append('email', this.answers.email.answer);
-                formData.append('company_name', this.answers.companyName.answer);
-                formData.append('phone_number', this.answers.phone.answer || '');
-                formData.append('compliance_score', this.calculateScore());
-                formData.append('full_summary', Object.entries(this.answers).map(([key, value]) => `${value.question}: ${Array.isArray(value.answer) ? value.answer.join(', ') : value.answer}`).join('\n'));
+                const payload = {
+                    user_name: `${this.answers.firstName.answer} ${this.answers.lastName.answer}`,
+                    user_email: this.answers.email.answer,
+                    email: this.answers.email.answer,
+                    company_name: this.answers.companyName.answer,
+                    phone_number: this.answers.phone.answer || '',
+                    compliance_score: this.calculateScore(),
+                    full_summary: Object.entries(this.answers).map(([key, value]) => `${value.question}: ${Array.isArray(value.answer) ? value.answer.join(', ') : value.answer}`).join('\n')
+                };
 
-                // Send to Netlify Function
+                // Send to Netlify Function with JSON
                 fetch('/.netlify/functions/send-email', {
                     method: 'POST',
-                    body: formData
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 })
                 .then(response => response.json())
                 .then(data => {
