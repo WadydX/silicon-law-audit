@@ -33,10 +33,8 @@ exports.handler = async (event, context) => {
   const clientTemplateId = process.env.EMAILJS_CLIENT_TEMPLATE_ID;
   const publicKey = process.env.EMAILJS_PUBLIC_KEY;
 
-  console.log('Environment variables:', { serviceId, firmTemplateId, clientTemplateId, publicKey });
-
   if (!serviceId || !firmTemplateId || !clientTemplateId || !publicKey) {
-    console.error('Missing environment variables:', { serviceId, firmTemplateId, clientTemplateId, publicKey });
+    console.error('Missing environment variables:', { serviceId: !!serviceId, firmTemplateId: !!firmTemplateId, clientTemplateId: !!clientTemplateId, publicKey: !!publicKey });
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Missing configuration. Please check environment variables.' })
@@ -44,6 +42,7 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    console.log('Attempting to send firm email');
     const firmParams = {
       user_name,
       user_email,
@@ -54,7 +53,6 @@ exports.handler = async (event, context) => {
       full_summary
     };
 
-    console.log('Attempting to send firm email with params:', firmParams);
     const firmResponse = await send({
       service_id: serviceId,
       template_id: firmTemplateId,
@@ -63,8 +61,8 @@ exports.handler = async (event, context) => {
     });
     console.log('Firm email response:', firmResponse);
 
+    console.log('Attempting to send client email');
     const clientParams = { ...firmParams };
-    console.log('Attempting to send client email with params:', clientParams);
     const clientResponse = await send({
       service_id: serviceId,
       template_id: clientTemplateId,
