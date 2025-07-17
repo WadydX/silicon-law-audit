@@ -1,4 +1,4 @@
-const { init, send } = require('@emailjs/nodejs');
+const { send } = require('@emailjs/nodejs');
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
@@ -44,9 +44,6 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    // Initialize EmailJS client
-    init(publicKey);
-
     const trimmedPublicKey = publicKey ? publicKey.trim() : null;
     console.log('Trimmed publicKey value (last 2 chars masked):', trimmedPublicKey ? `${trimmedPublicKey.slice(0, -2)}XX` : 'null');
     if (!trimmedPublicKey || trimmedPublicKey.length === 0) {
@@ -71,7 +68,7 @@ exports.handler = async (event, context) => {
     const firmResponse = await send({
       service_id: serviceId,
       template_id: firmTemplateId,
-      user_id: trimmedPublicKey, // Re-add user_id
+      user_id: trimmedPublicKey,
       template_params: firmParams
     });
     console.log('Firm email response:', firmResponse);
