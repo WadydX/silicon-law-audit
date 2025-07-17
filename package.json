@@ -10,7 +10,7 @@
 "dependencies": {
   "@emailjs/nodejs": "^4.1.0",
   "axios": "^1.7.2",
-  "node-fetch": "^3.3.2"
+  "node-fetch": "^2.6.7" // Downgrade to 2.x
   },
   "devDependencies": {
     "netlify-cli": "^17.23.5"
