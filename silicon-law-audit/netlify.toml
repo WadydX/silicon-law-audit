@@ -1,5 +1,10 @@
-# This file tells Netlify where to find your serverless functions.
-# Save this file in the main project folder.
-
 [build]
+  command = "echo 'No build command needed'"
+  publish = "."
   functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+  force = true
