@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+const { send } = require('@emailjs/nodejs');
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
@@ -64,49 +64,27 @@ exports.handler = async (event, context) => {
       full_summary
     };
 
-    const firmResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        service_id: serviceId,
-        template_id: firmTemplateId,
-        user_id: trimmedPublicKey,
-        template_params: firmParams
-      })
+    console.log('Sending firm email with params:', firmParams);
+    const firmResponse = await send({
+      service_id: serviceId,
+      template_id: firmTemplateId,
+      user_id: trimmedPublicKey,
+      template_params: firmParams
     });
-    const firmText = await firmResponse.text(); // Log raw text
-    console.log('Firm email raw response:', firmText);
-    let firmResult;
-    try {
-      firmResult = JSON.parse(firmText); // Manually parse text to JSON
-    } catch (parseError) {
-      throw new Error(`Failed to parse firm response: ${parseError.message} - Raw: ${firmText}`);
-    }
-    console.log('Firm email response:', firmResult);
+    console.log('Firm email response:', firmResponse);
 
     const clientParams = { ...firmParams };
-    const clientResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        service_id: serviceId,
-        template_id: clientTemplateId,
-        user_id: trimmedPublicKey,
-        template_params: clientParams
-      })
+    console.log('Sending client email with params:', clientParams);
+    const clientResponse = await send({
+      service_id: serviceId,
+      template_id: clientTemplateId,
+      user_id: trimmedPublicKey,
+      template_params: clientParams
     });
-    const clientText = await clientResponse.text();
-    console.log('Client email raw response:', clientText);
-    let clientResult;
-    try {
-      clientResult = JSON.parse(clientText);
-    } catch (parseError) {
-      throw new Error(`Failed to parse client response: ${parseError.message} - Raw: ${clientText}`);
-    }
-    console.log('Client email response:', clientResult);
+    console.log('Client email response:', clientResponse);
 
-    if (!firmResult.success || !clientResult.success) {
-      throw new Error('Email sending failed: ' + (firmResult.error || clientResult.error));
+    if (!firmResponse.success || !clientResponse.success) {
+      throw new Error('Email sending failed: ' + (firmResponse.error || clientResponse.error));
     }
 
     console.log('Emails sent successfully');
