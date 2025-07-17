@@ -557,7 +557,7 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.message === 'Emails sent successfully') {
+                    if (data.message && data.message.includes('Emails sent')) {
                         this.showMessage('Emails sent successfully!', 'success');
                     } else {
                         this.showMessage('Failed to send emails. Please try again.', 'error');
