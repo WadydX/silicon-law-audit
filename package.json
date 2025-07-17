@@ -7,10 +7,10 @@
     "start": "netlify dev",
     "build": "netlify deploy --prod"
   },
-  "dependencies": {
-    "@emailjs/nodejs": "^3.0.0",
-    "axios": "^1.7.2",
-    "node-fetch": "^3.3.2"
+"dependencies": {
+  "@emailjs/nodejs": "^5.0.2",
+  "axios": "^1.7.2",
+  "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "netlify-cli": "^17.23.5"
