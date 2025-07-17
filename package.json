@@ -8,7 +8,7 @@
     "build": "netlify deploy --prod"
   },
   "dependencies": {
-    "@emailjs/node": "^4.0.3",
+    "@emailjs/nodejs": "^3.0.0",
     "axios": "^1.7.2",
     "node-fetch": "^3.3.2"
   },
