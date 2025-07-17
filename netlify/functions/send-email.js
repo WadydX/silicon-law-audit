@@ -1,4 +1,4 @@
-const emailjs = require('@emailjs/node');
+const { send } = require('@emailjs/nodejs');
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
@@ -26,11 +26,6 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    // Initialize EmailJS with environment variables
-    emailjs.init({
-      publicKey: process.env.EMAILJS_PUBLIC_KEY
-    });
-
     const firmParams = {
       user_name,
       user_email,
@@ -41,21 +36,23 @@ exports.handler = async (event, context) => {
       full_summary
     };
 
-    const clientParams = { ...firmParams }; // Same parameters for client email
+    const clientParams = { ...firmParams };
 
     // Send email to the firm
-    await emailjs.send(
-      process.env.EMAILJS_SERVICE_ID,
-      process.env.EMAILJS_FIRM_TEMPLATE_ID,
-      firmParams
-    );
+    await send({
+      service_id: process.env.EMAILJS_SERVICE_ID,
+      template_id: process.env.EMAILJS_FIRM_TEMPLATE_ID,
+      user_id: process.env.EMAILJS_PUBLIC_KEY,
+      template_params: firmParams
+    });
 
     // Send email to the client
-    await emailjs.send(
-      process.env.EMAILJS_SERVICE_ID,
-      process.env.EMAILJS_CLIENT_TEMPLATE_ID,
-      clientParams
-    );
+    await send({
+      service_id: process.env.EMAILJS_SERVICE_ID,
+      template_id: process.env.EMAILJS_CLIENT_TEMPLATE_ID,
+      user_id: process.env.EMAILJS_PUBLIC_KEY,
+      template_params: clientParams
+    });
 
     return {
       statusCode: 200,
