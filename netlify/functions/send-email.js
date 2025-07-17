@@ -45,15 +45,20 @@ exports.handler = async (event, context) => {
 
   try {
     const trimmedPublicKey = publicKey ? publicKey.trim() : null;
+    console.log('Trimmed publicKey value (last 2 chars masked):', trimmedPublicKey ? `${trimmedKey.slice(0, -2)}XX` : 'null'); // Mask for security
     if (!trimmedPublicKey || trimmedPublicKey.length === 0) {
-      console.error('Public key is empty or invalid after trim:', publicKey);
+      console.error('Public key is empty or invalid:', publicKey);
       return {
         statusCode: 500,
         body: JSON.stringify({ error: 'Invalid public key configuration.' })
       };
     }
 
-    console.log('Using trimmed publicKey length:', trimmedPublicKey.length); // Log length to avoid exposing the key
+    // Debugging: Test with hardcoded key (remove before production)
+    const testPublicKey = trimmedPublicKey; // Use env var
+    // const testPublicKey = 'WA50Mk7YHTgs6jkRU'; // Uncomment to test hardcoded, then remove
+
+    console.log('Using publicKey for send, length:', trimmedPublicKey.length);
     const firmParams = {
       user_name,
       user_email,
@@ -68,7 +73,7 @@ exports.handler = async (event, context) => {
     const firmResponse = await send({
       service_id: serviceId,
       template_id: firmTemplateId,
-      user_id: trimmedPublicKey,
+      user_id: testPublicKey,
       template_params: firmParams
     });
     console.log('Firm email response:', firmResponse);
@@ -78,7 +83,7 @@ exports.handler = async (event, context) => {
     const clientResponse = await send({
       service_id: serviceId,
       template_id: clientTemplateId,
-      user_id: trimmedPublicKey,
+      user_id: testPublicKey,
       template_params: clientParams
     });
     console.log('Client email response:', clientResponse);
