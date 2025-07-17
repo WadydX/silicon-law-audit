@@ -1,7 +1,5 @@
 // netlify/functions/get-ai-recommendations.js
 
-const fetch = require('node-fetch');
-
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
@@ -27,6 +25,7 @@ exports.handler = async (event) => {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
   try {
+    // Use the built-in fetch in Node 18+
     const apiRes = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
