@@ -92,7 +92,7 @@ exports.handler = async (event, context) => {
     console.log('Client email response:', clientResult);
 
     if (!firmResult.success || !clientResult.success) {
-      throw new Error('Email sending failed');
+      throw new Error('Email sending failed: ' + (firmResult.error || clientResult.error));
     }
 
     console.log('Emails sent successfully');
