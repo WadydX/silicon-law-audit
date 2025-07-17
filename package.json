@@ -6,9 +6,9 @@
   "scripts": {
     "start": "node index.js"
   },
- "dependencies": {
-  "@emailjs/nodejs": "^4.1.0", // Or the version you originally used
-  "axios": "^1.7.2",
-  "node-fetch": "^2.6.7" // Keep this for now, but we’ll rely on @emailjs/nodejs
-}
+  "dependencies": {
+    "@emailjs/nodejs": "^4.1.0", // Or the version you originally used
+    "axios": "^1.7.2",
+    "node-fetch": "^2.6.7"
+  }
 }
