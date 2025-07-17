@@ -45,9 +45,9 @@ exports.handler = async (event, context) => {
 
   try {
     const trimmedPublicKey = publicKey ? publicKey.trim() : null;
-    console.log('Trimmed publicKey value (last 2 chars masked):', trimmedPublicKey ? `${trimmedKey.slice(0, -2)}XX` : 'null'); // Mask for security
+    console.log('Trimmed publicKey value (last 2 chars masked):', trimmedPublicKey ? `${trimmedPublicKey.slice(0, -2)}XX` : 'null'); // Fixed typo
     if (!trimmedPublicKey || trimmedPublicKey.length === 0) {
-      console.error('Public key is empty or invalid:', publicKey);
+      console.error('Public key is empty or invalid after trim:', publicKey);
       return {
         statusCode: 500,
         body: JSON.stringify({ error: 'Invalid public key configuration.' })
