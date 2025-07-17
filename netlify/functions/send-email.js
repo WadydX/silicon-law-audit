@@ -1,27 +1,29 @@
 // netlify/functions/send-email.js
+
+// 1. Import & initialize EmailJS SDK
 const emailjs = require('@emailjs/nodejs');
 
-// Pull your keys out of env, trim off any stray whitespace:
+// Load and trim your EmailJS keys from environment
 const PUBLIC_KEY  = process.env.EMAILJS_PUBLIC_KEY?.trim();
 const PRIVATE_KEY = process.env.EMAILJS_PRIVATE_KEY?.trim();
 
-// Immediately initialize the SDK with your keys.
-// The publicKey is **required**; privateKey is optional but recommended
-// for non-browser (server-side) use :contentReference[oaicite:0]{index=0}.
+// Initialize the SDK so every send() call includes your keys
 emailjs.init({
   publicKey:  PUBLIC_KEY,
   privateKey: PRIVATE_KEY,
 });
 
 exports.handler = async (event) => {
+  // Only allow POST
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
+      headers: { 'Allow': 'POST' },
       body: JSON.stringify({ error: 'Method Not Allowed' })
     };
   }
 
-  // Parse and validate JSON body
+  // 2. Parse JSON body
   let body;
   try {
     body = typeof event.body === 'string'
@@ -35,64 +37,90 @@ exports.handler = async (event) => {
     };
   }
 
+  // 3. Build and validate parameters
   const params = {
-    user_name:       body.user_name,
-    user_email:      body.user_email,
-    email:           body.email,
-    company_name:    body.company_name,
-    phone_number:    body.phone_number || '',
+    user_name:        body.user_name,
+    user_email:       body.user_email,
+    company_name:     body.company_name,
+    phone_number:     body.phone_number || '',
     compliance_score: parseInt(body.compliance_score, 10) || 0,
-    full_summary:    body.full_summary,
+    full_summary:     body.full_summary,
   };
 
-  // Basic field checks
-  if (!params.user_name || !params.user_email || !params.company_name || !params.full_summary) {
+  if (
+    !params.user_name ||
+    !params.user_email ||
+    !params.company_name ||
+    !params.full_summary
+  ) {
+    console.error('Validation error – missing fields:', params);
     return {
       statusCode: 400,
       body: JSON.stringify({ error: 'Missing required fields' })
     };
   }
 
-  // Check that your environment variables are set
-  const serviceId        = process.env.EMAILJS_SERVICE_ID;
-  const firmTemplateId   = process.env.EMAILJS_FIRM_TEMPLATE_ID;
-  const clientTemplateId = process.env.EMAILJS_CLIENT_TEMPLATE_ID;
-  if (!serviceId || !firmTemplateId || !clientTemplateId || !PUBLIC_KEY) {
-    console.error('Missing config:', {
-      serviceId, firmTemplateId, clientTemplateId, publicKey: !!PUBLIC_KEY
+  // 4. Pull template IDs from env
+  const serviceId      = process.env.EMAILJS_SERVICE_ID;
+  const firmTplId      = process.env.EMAILJS_FIRM_TEMPLATE_ID;
+  const clientTplId    = process.env.EMAILJS_CLIENT_TEMPLATE_ID;
+
+  if (
+    !serviceId ||
+    !firmTplId ||
+    !clientTplId ||
+    !PUBLIC_KEY
+  ) {
+    console.error('EmailJS config missing:', {
+      serviceId,
+      firmTplId,
+      clientTplId,
+      publicKeyPresent: Boolean(PUBLIC_KEY)
     });
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Missing EmailJS configuration' })
+      body: JSON.stringify({ error: 'Server configuration error' })
     };
   }
 
   try {
-    // Send to your firm
+    // 5. Send audit summary to the firm
+    console.log('Sending firm email with params:', params);
     const firmRes = await emailjs.send(
       serviceId,
-      firmTemplateId,
+      firmTplId,
       params
     );
     console.log('Firm email response:', firmRes);
 
-    // Send to your client
+    // 6. Send audit results to the client
+    //    Must include the recipient variable your EmailJS template expects
+    const clientParams = {
+      ...params,
+      to_email: params.user_email
+    };
+    console.log('Sending client email with params:', clientParams);
     const clientRes = await emailjs.send(
       serviceId,
-      clientTemplateId,
-      params
+      clientTplId,
+      clientParams
     );
     console.log('Client email response:', clientRes);
 
+    // 7. Success response
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Emails sent successfully' })
+      body: JSON.stringify({ message: 'Both emails sent successfully' })
     };
+
   } catch (err) {
+    // 8. Error handling
     console.error('Email sending failed:', err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: err.message || 'Could not send emails' })
+      body: JSON.stringify({
+        error: err.text || err.message || 'EmailJS error'
+      })
     };
   }
 };
