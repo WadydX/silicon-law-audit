@@ -5,11 +5,9 @@ exports.handler = async (event, context) => {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
-  const formData = new URLSearchParams(await new Promise((resolve) => {
-    const chunks = [];
-    event.on('data', chunk => chunks.push(chunk));
-    event.on('end', () => resolve(Buffer.concat(chunks).toString()));
-  }));
+  // Parse the body directly from event.body (string or Buffer)
+  const body = typeof event.body === 'string' ? event.body : await new Promise((resolve) => resolve(event.body.toString()));
+  const formData = new URLSearchParams(body);
   const params = {
     user_name: formData.get('user_name'),
     user_email: formData.get('user_email'),
