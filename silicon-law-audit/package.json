@@ -1,15 +1,20 @@
 {
-  "name": "silicon-law-audit-function",
+  "name": "silicon-law-audit",
   "version": "1.0.0",
-  "description": "Backend function for Silicon Law audit tool.",
-  "main": "index.js",
+  "description": "Legal Compliance Audit Application",
+  "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "netlify dev",
+    "build": "netlify deploy --prod"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "@google/generative-ai": "^0.11.3",
-    "@emailjs/nodejs": "^4.0.3"
-  }
+    "@emailjs/node": "^4.0.3",
+    "axios": "^1.7.2",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.23.5"
+  },
+  "author": "Silicon Law",
+  "license": "MIT"
 }
