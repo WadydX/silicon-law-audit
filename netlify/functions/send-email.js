@@ -18,7 +18,10 @@ exports.handler = async (event, context) => {
     full_summary
   } = JSON.parse(event.body);
 
+  console.log('Received request with data:', { user_name, user_email, company_name, full_summary });
+
   if (!user_name || !user_email || !company_name || !full_summary) {
+    console.log('Missing required fields:', { user_name, user_email, company_name, full_summary });
     return {
       statusCode: 400,
       body: JSON.stringify({ error: 'Missing required fields' })
@@ -26,6 +29,13 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    console.log('Environment variables:', {
+      serviceId: process.env.EMAILJS_SERVICE_ID,
+      firmTemplateId: process.env.EMAILJS_FIRM_TEMPLATE_ID,
+      clientTemplateId: process.env.EMAILJS_CLIENT_TEMPLATE_ID,
+      publicKey: process.env.EMAILJS_PUBLIC_KEY
+    });
+
     const firmParams = {
       user_name,
       user_email,
@@ -54,15 +64,16 @@ exports.handler = async (event, context) => {
       template_params: clientParams
     });
 
+    console.log('Emails sent successfully');
     return {
       statusCode: 200,
       body: JSON.stringify({ message: 'Emails sent successfully' })
     };
   } catch (error) {
-    console.error('Email sending failed:', error);
+    console.error('Email sending failed:', error.message);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to send emails' })
+      body: JSON.stringify({ error: 'Could not send emails. Please try again later.' })
     };
   }
 };
