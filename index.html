@@ -550,7 +550,6 @@
                     full_summary: Object.entries(this.answers).map(([key, value]) => `${value.question}: ${Array.isArray(value.answer) ? value.answer.join(', ') : value.answer}`).join('\n')
                 };
 
-                // Send to Netlify Function with JSON
                 fetch('/.netlify/functions/send-email', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
