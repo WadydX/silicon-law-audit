@@ -7,7 +7,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@emailjs/nodejs": "^4.1.0", // Or the version you originally used
+    "@emailjs/nodejs": "^4.1.0",
     "axios": "^1.7.2",
     "node-fetch": "^2.6.7"
   }
