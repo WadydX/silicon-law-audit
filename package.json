@@ -1,20 +1,14 @@
 {
   "name": "silicon-law-audit",
   "version": "1.0.0",
-  "description": "Legal Compliance Audit Application",
-  "main": "index.html",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "start": "netlify dev",
-    "build": "netlify deploy --prod"
+    "start": "node index.js"
   },
-"dependencies": {
-  "@emailjs/nodejs": "^4.1.0",
-  "axios": "^1.7.2",
-  "node-fetch": "^2.6.7" // Downgrade to 2.x
-  },
-  "devDependencies": {
-    "netlify-cli": "^17.23.5"
-  },
-  "author": "Silicon Law",
-  "license": "MIT"
+  "dependencies": {
+    "@emailjs/nodejs": "^4.1.0",
+    "axios": "^1.7.2",
+    "node-fetch": "^2.6.7"
+  }
 }
