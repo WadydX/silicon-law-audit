@@ -64,23 +64,19 @@
 <body class="bg-gray-50 text-gray-800 flex items-center justify-center min-h-screen">
     <div class="w-full max-w-2xl mx-auto p-4 md:p-8">
         <div id="app-container" class="bg-white rounded-2xl shadow-lg p-6 md:p-10 transition-all duration-500">
-
             <!-- Header -->
             <div class="text-center mb-6">
                 <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Silicon Law</h1>
                 <p class="text-gray-500 mt-1">Legal Compliance Audit</p>
             </div>
-
             <!-- Progress Bar -->
             <div id="progress-container" class="w-full bg-gray-200 rounded-full h-2.5 mb-8">
                 <div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
             </div>
-
             <!-- Form Screens Container -->
             <div id="form-container" class="relative">
                 <!-- Questions will be injected here by JavaScript -->
             </div>
-
             <!-- Results Screen -->
             <div id="results-screen" class="hidden text-center">
                 <h2 class="text-2xl font-bold mb-4">Your Compliance Score</h2>
@@ -90,9 +86,8 @@
                     </div>
                 </div>
                 <p id="compliance-message" class="text-lg font-medium text-gray-700 mb-8"></p>
-
-                <!-- AI Recommendations Section (Conditionally Displayed) -->
-                <div id="ai-section" class="my-8 hidden">
+                <!-- AI Recommendations Section -->
+                <div id="ai-section" class="my-8">
                     <button id="get-ai-recommendations-btn" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition duration-300">
                         Get AI-Powered Recommendations
                     </button>
@@ -103,25 +98,16 @@
                         <div id="ai-content"></div>
                     </div>
                 </div>
-
-                 <button id="restart-btn" class="mt-8 text-indigo-600 hover:underline">Start Over</button>
+                <button id="restart-btn" class="mt-8 text-indigo-600 hover:underline">Start Over</button>
             </div>
-            
             <!-- Message Box for notifications -->
             <div id="message-box" class="hidden fixed top-5 right-5 bg-red-500 text-white py-2 px-4 rounded-lg shadow-lg transition-opacity duration-300">
                 <p id="message-text"></p>
             </div>
-
         </div>
     </div>
 
 <script>
-// --- CONFIGURATION ---
-const appConfig = {
-    version: '1.0', // Internal version identifier
-    enableAiRecommendations: true,
-};
-
 const auditConfig = {
     questions: [
         { id: 'companyName', section: 'Your Details', text: 'Company Name', type: 'text', weight: 0, required: true },
@@ -158,7 +144,6 @@ const auditConfig = {
     ]
 };
 
-// --- APPLICATION LOGIC ---
 document.addEventListener('DOMContentLoaded', () => {
     const app = {
         currentQuestionIndex: 0,
@@ -193,7 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         buildForm() {
             this.formContainer.innerHTML = '';
-            
             const detailQuestions = auditConfig.questions.filter(q => q.section === 'Your Details');
             const detailsScreen = document.createElement('div');
             detailsScreen.id = `question-0`;
@@ -247,12 +231,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     optionsHTML = q.options.map(opt => `<label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500"><input type="checkbox" name="${inputName}" value="${opt.text}" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"><span class="ml-3 text-gray-700">${opt.text}</span></label>`).join('');
                     break;
                 case 'select':
-                     optionsHTML = `<select name="${inputName}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">${q.options.map(opt => `<option value="${opt.text}">${opt.text}</option>`).join('')}</select>`;
+                    optionsHTML = `<select name="${inputName}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">${q.options.map(opt => `<option value="${opt.text}">${opt.text}</option>`).join('')}</select>`;
                     break;
                 case 'textarea':
                     optionsHTML = `<textarea name="${inputName}" rows="4" placeholder="Please share further details..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>`;
                     break;
-                 case 'url':
+                case 'url':
                     optionsHTML = `<input type="url" name="${inputName}" placeholder="https://example.com" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">`;
                     break;
             }
@@ -279,14 +263,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 let visibleIndex = visibleQuestions.indexOf(targetQuestion);
                 if (visibleIndex === -1) {
-                    if(direction === 'next') {
-                        targetQuestion = visibleQuestions.find(vq => allNonDetailQuestions.indexOf(vq) >= index -1);
+                    if (direction === 'next') {
+                        targetQuestion = visibleQuestions.find(vq => allNonDetailQuestions.indexOf(vq) >= index - 1);
                     } else {
                         const reversedVisible = [...visibleQuestions].reverse();
-                        targetQuestion = reversedVisible.find(vq => allNonDetailQuestions.indexOf(vq) <= index -1);
+                        targetQuestion = reversedVisible.find(vq => allNonDetailQuestions.indexOf(vq) <= index - 1);
                     }
                 }
-                 nextIndex = targetQuestion ? allNonDetailQuestions.indexOf(targetQuestion) + 1 : -1;
+                nextIndex = targetQuestion ? allNonDetailQuestions.indexOf(targetQuestion) + 1 : -1;
             }
             
             const nextScreen = document.getElementById(`question-${nextIndex}`);
@@ -330,10 +314,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isLastQuestion) {
                     button.disabled = true;
                     button.innerHTML = `<div class="loader"></div>`;
-                    this.submitLead();
-                    setTimeout(() => {
+                    this.submitLead().then(() => {
                         this.showResults();
-                    }, 500);
+                        button.disabled = false;
+                        button.innerHTML = 'Submit & See Results';
+                    }).catch(() => {
+                        button.disabled = false;
+                        button.innerHTML = 'Submit & See Results';
+                    });
                 } else {
                     this.showQuestion(index + 1, 'next');
                 }
@@ -392,15 +380,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'select':
                     value = document.querySelector(`[name="${inputName}"]`).value;
                     if (question.required && value === "Please Select") {
-                         this.showMessage('Please make a selection.');
-                         return false;
+                        this.showMessage('Please make a selection.');
+                        return false;
                     }
                     isValid = true;
                     break;
                 case 'textarea':
                 case 'url':
                     value = inputs[0].value.trim();
-                     if (question.required && !value) {
+                    if (question.required && !value) {
                         this.showMessage('This field is required.');
                         return false;
                     }
@@ -475,8 +463,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             maxOptionScore = Math.max(...q.options.map(o => o.score || 0));
                         }
 
-                        if(maxOptionScore > 0) {
-                             totalScore += (currentOptionScore / maxOptionScore) * q.weight;
+                        if (maxOptionScore > 0) {
+                            totalScore += (currentOptionScore / maxOptionScore) * q.weight;
                         }
                     }
                 }
@@ -502,9 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 messageEl.textContent = 'Strong compliance – well done!';
                 messageEl.className = 'text-lg font-medium text-green-600 mb-8';
             }
-            if (appConfig.enableAiRecommendations) {
-                this.aiSection.classList.remove('hidden');
-            }
+            this.aiSection.classList.remove('hidden');
         },
 
         async getAiRecommendations() {
@@ -512,25 +498,22 @@ document.addEventListener('DOMContentLoaded', () => {
             this.aiRecommendationsContainer.classList.remove('hidden');
             this.aiLoader.classList.remove('hidden');
             this.aiContent.classList.add('hidden');
-            
-            const payload = {
-                answers: this.answers,
-                score: this.calculateScore()
-            };
-
+            let promptSummary = "The user's audit answers are as follows:\n";
+            for (const key in this.answers) {
+                const answerData = this.answers[key];
+                const answerText = Array.isArray(answerData.answer) ? answerData.answer.join(', ') : answerData.answer;
+                if (answerText) promptSummary += `- ${answerData.question}: ${answerText}\n`;
+            }
+            const prompt = `You are a helpful legal tech assistant for a law firm named 'Silicon Law'. A potential client has just completed a legal compliance audit. Their final compliance score is ${this.calculateScore()}%. Based on their following answers, provide a brief, actionable summary of their top 3 legal risks and suggest concrete next steps. Frame the advice as helpful guidance, not as official legal advice. The tone should be professional, encouraging, and clear. Format the output as simple HTML using h4 for headings, ul and li for lists, and p for paragraphs. Do not wrap the entire response in a markdown block.\n\n${promptSummary}\n\nPlease provide the analysis now.`;
             try {
-                const response = await fetch('/.netlify/functions/get-ai-recommendations', { 
+                const response = await fetch('/api/get-ai-recommendations', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload) 
+                    body: JSON.stringify({ prompt })
                 });
-                if (!response.ok) throw new Error(`Function request failed with status ${response.status}`);
+                if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
                 const result = await response.json();
-                if (result.recommendation) {
-                    this.aiContent.innerHTML = result.recommendation;
-                } else {
-                    throw new Error("Invalid response structure from function.");
-                }
+                this.aiContent.innerHTML = result.text;
             } catch (error) {
                 console.error("Error fetching AI recommendations:", error);
                 this.aiContent.innerHTML = `<p class="text-red-500">Sorry, we couldn't generate recommendations at this time. Please try again later.</p>`;
@@ -539,31 +522,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.aiContent.classList.remove('hidden');
             }
         },
-        
-        submitLead() {
-            const payload = {
-                answers: this.answers,
-                score: this.calculateScore()
-            };
 
-            fetch('/.netlify/functions/send-email', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    console.error('Error sending email:', data.error);
-                    this.showMessage(data.error, 'error');
-                } else {
-                    console.log('Emails sent successfully:', data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Fetch error for send-email function:', error);
-                this.showMessage('A network error occurred while submitting.', 'error');
-            });
+        async submitLead() {
+            const templateParams = {
+                user_name: `${this.answers.firstName.answer} ${this.answers.lastName.answer}`,
+                user_email: this.answers.email.answer,
+                email: this.answers.email.answer,
+                company_name: this.answers.companyName.answer,
+                phone_number: this.answers.phone.answer || '',
+                compliance_score: this.calculateScore(),
+                full_summary: Object.entries(this.answers).map(([key, value]) => `${value.question}: ${Array.isArray(value.answer) ? value.answer.join(', ') : value.answer}`).join('\n')
+            };
+            
+            try {
+                const response = await fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(templateParams)
+                });
+                if (!response.ok) throw new Error(`Email submission failed with status ${response.status}`);
+                console.log('Emails sent successfully');
+            } catch (error) {
+                console.error('Email submission failed:', error);
+                this.showMessage('Could not send emails. Please try again later.', 'error');
+                throw error;
+            }
         },
 
         showMessage(message, type = 'error') {
@@ -581,12 +564,10 @@ document.addEventListener('DOMContentLoaded', () => {
             this.resultsScreen.classList.add('hidden');
             this.formContainer.classList.remove('hidden');
             this.progressContainer.classList.remove('hidden');
-            
             this.aiSection.classList.add('hidden');
             this.getAiRecommendationsBtn.classList.remove('hidden');
             this.aiRecommendationsContainer.classList.add('hidden');
             this.aiContent.innerHTML = '';
-            
             this.buildForm();
             const allScreens = this.formContainer.querySelectorAll('.form-screen');
             allScreens.forEach((screen, index) => {
@@ -597,7 +578,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         attachEventListeners() {
             this.formContainer.addEventListener('click', (e) => {
-                if(e.target.dataset.action) this.handleNavigation(e);
+                if (e.target.dataset.action) this.handleNavigation(e);
             });
             this.formContainer.addEventListener('change', (e) => {
                 if (e.target.type === 'file') this.handleFileUpload(e);
