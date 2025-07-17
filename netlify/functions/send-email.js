@@ -33,8 +33,10 @@ exports.handler = async (event, context) => {
   const clientTemplateId = process.env.EMAILJS_CLIENT_TEMPLATE_ID;
   const publicKey = process.env.EMAILJS_PUBLIC_KEY;
 
+  console.log('Environment variables present:', { serviceId: !!serviceId, firmTemplateId: !!firmTemplateId, clientTemplateId: !!clientTemplateId, publicKey: !!publicKey });
+
   if (!serviceId || !firmTemplateId || !clientTemplateId || !publicKey) {
-    console.error('Missing environment variables:', { serviceId: !!serviceId, firmTemplateId: !!firmTemplateId, clientTemplateId: !!clientTemplateId, publicKey: !!publicKey });
+    console.error('Missing environment variables:', { serviceId, firmTemplateId, clientTemplateId, publicKey });
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Missing configuration. Please check environment variables.' })
@@ -42,7 +44,16 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    console.log('Attempting to send firm email');
+    const trimmedPublicKey = publicKey ? publicKey.trim() : null;
+    if (!trimmedPublicKey || trimmedPublicKey.length === 0) {
+      console.error('Public key is empty or invalid after trim:', publicKey);
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Invalid public key configuration.' })
+      };
+    }
+
+    console.log('Using trimmed publicKey length:', trimmedPublicKey.length); // Log length to avoid exposing the key
     const firmParams = {
       user_name,
       user_email,
@@ -53,20 +64,21 @@ exports.handler = async (event, context) => {
       full_summary
     };
 
+    console.log('Sending firm email with params:', firmParams);
     const firmResponse = await send({
       service_id: serviceId,
       template_id: firmTemplateId,
-      user_id: publicKey,
+      user_id: trimmedPublicKey,
       template_params: firmParams
     });
     console.log('Firm email response:', firmResponse);
 
-    console.log('Attempting to send client email');
     const clientParams = { ...firmParams };
+    console.log('Sending client email with params:', clientParams);
     const clientResponse = await send({
       service_id: serviceId,
       template_id: clientTemplateId,
-      user_id: publicKey,
+      user_id: trimmedPublicKey,
       template_params: clientParams
     });
     console.log('Client email response:', clientResponse);
