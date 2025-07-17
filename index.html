@@ -538,10 +538,16 @@
     }
 
     const result = await res.json();
-    const content = result.candidates?.[0]?.content?.parts?.[0];
-    if (!content) throw new Error('No content returned');
+const part = result.candidates?.[0]?.content?.parts?.[0];
+if (!part) throw new Error('No content returned');
 
-    this.aiContent.innerHTML = content;
+// extract the text from the returned object
+const content = typeof part === 'string'
+  ? part
+  : part.text ?? '';
+
+this.aiContent.innerHTML = content;
+
 
   } catch (err) {
     console.error("Error fetching AI recommendations:", err);
