@@ -511,7 +511,7 @@
   this.aiLoader.classList.remove('hidden');
   this.aiContent.classList.add('hidden');
 
-  // Build the prompt summary exactly as before...
+  // 1) Build the prompt as before
   let promptSummary = "The user's audit answers are as follows:\n";
   for (const key in this.answers) {
     const answerData = this.answers[key];
@@ -521,10 +521,10 @@
     if (answerText) promptSummary += `- ${answerData.question}: ${answerText}\n`;
   }
 
-  const prompt = `You are a helpful legal tech assistant for a law firm named 'Silicon Law'. A potential client has just completed a legal compliance audit. Their final compliance score is ${this.calculateScore()}%. Based on their following answers, provide a brief, actionable summary of their top 3 legal risks and suggest concrete next steps. Frame the advice as helpful guidance, not as official legal advice. The tone should be professional, encouraging, and clear. Format the output as simple HTML using h4 for headings, ul and li for lists, and p for paragraphs. Do not wrap the entire response in a markdown block.\n\n${promptSummary}\n\nPlease provide the analysis now.`;
+  const prompt = `You are a helpful legal tech assistant for a law firm named 'Silicon Law'. A potential client has just completed a legal compliance audit. Their final compliance score is ${this.calculateScore()}%. Based on their following answers, provide a brief, actionable summary of their top 3 legal risks and suggest concrete next steps. Frame the advice as helpful guidance, not as official legal advice. The tone should be professional, encouraging, and clear. Format the output as simple HTML using h4 for headings, ul and li for lists, and p for paragraphs. Do not include any “Subject:” line or markdown fences.`;
 
   try {
-    // Call your new Netlify Function
+    // 2) Call your Netlify Function
     const res = await fetch('/.netlify/functions/get-ai-recommendations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -533,25 +533,26 @@
       })
     });
 
-    if (!res.ok) {
-      throw new Error(`Server error ${res.status}`);
-    }
-
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
     const result = await res.json();
-const part = result.candidates?.[0]?.content?.parts?.[0];
-if (!part) throw new Error('No content returned');
 
-// extract the text from the returned object
-const content = typeof part === 'string'
-  ? part
-  : part.text ?? '';
+    // 3) Extract the first part (should be an object with .text)
+    const part = result.candidates?.[0]?.content?.parts?.[0] || '';
+    // If it's an object, grab its .text; otherwise assume it's already a string
+    let raw = typeof part === 'string' ? part : part.text || '';
 
-this.aiContent.innerHTML = content;
+    // 4) Strip out any ``` fences and any leading "Subject:" line
+    raw = raw.replace(/```(?:html)?/g, '');
+    raw = raw.replace(/^Subject:.*\n/i, '');
+    raw = raw.trim();
 
+    // 5) Insert the cleaned HTML
+    this.aiContent.innerHTML = raw;
 
   } catch (err) {
     console.error("Error fetching AI recommendations:", err);
-    this.aiContent.innerHTML = `<p class="text-red-500">Sorry, we couldn't generate recommendations at this time. Please try again later.</p>`;
+    this.aiContent.innerHTML =
+      `<p class="text-red-500">Sorry, we couldn't generate recommendations at this time. Please try again later.</p>`;
   } finally {
     this.aiLoader.classList.add('hidden');
     this.aiContent.classList.remove('hidden');
