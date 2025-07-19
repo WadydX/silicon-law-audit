@@ -2,14 +2,13 @@
 
 const emailjs = require('@emailjs/nodejs');
 
-// 1) Initialize with your trimmed keys
+// 1️⃣ Initialize with your trimmed keys
 emailjs.init({
   publicKey:  process.env.EMAILJS_PUBLIC_KEY.trim(),
   privateKey: process.env.EMAILJS_PRIVATE_KEY.trim(),
 });
 
 exports.handler = async (event) => {
-  // Only allow POST
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -18,15 +17,17 @@ exports.handler = async (event) => {
     };
   }
 
-  // 2) Parse JSON
+  // 2️⃣ Parse incoming JSON
   let body;
   try {
-    body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
+    body = typeof event.body === 'string'
+      ? JSON.parse(event.body)
+      : event.body;
   } catch {
-    return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON body' }) };
+    return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON' }) };
   }
 
-  // 3) Destructure & validate (include attachments array)
+  // 3️⃣ Destructure & basic validation
   const {
     user_name,
     user_email,
@@ -34,61 +35,73 @@ exports.handler = async (event) => {
     phone_number = '',
     compliance_score,
     full_summary,
-    attachments = []           // optional array of { name, data }
+    attachments = []       // <-- array of { name, data }
   } = body;
 
   if (!user_name || !user_email || !company_name || !full_summary) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Missing required fields' }) };
   }
 
-  // 4) Load your EmailJS IDs
+  // 4️⃣ Load EmailJS IDs from env
   const serviceId   = process.env.EMAILJS_SERVICE_ID;
   const firmTplId   = process.env.EMAILJS_FIRM_TEMPLATE_ID;
   const clientTplId = process.env.EMAILJS_CLIENT_TEMPLATE_ID;
   if (!serviceId || !firmTplId || !clientTplId) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Server configuration error' }),
+      body: JSON.stringify({ error: 'Server misconfiguration' }),
     };
   }
 
-  // 5) Build template params, embedding attachments array directly
-  const params = {
+  // 5️⃣ Build your template parameters (no attachments here!)
+  const templateParams = {
     user_name,
     user_email,
     company_name,
     phone_number,
     compliance_score: parseInt(compliance_score, 10) || 0,
     full_summary,
-    // <-- pass your base64 attachments here under the same key you set in EmailJS dashboard
-    attachments: attachments.map(att => {
-      // att.data is "data:<mime>;base64,XXXXX"
-      const [, base64] = att.data.split(',');
-      return {
-        filename: att.name,
-        content:  base64,
-        encoding: 'base64'
-      };
-    })
   };
 
-  try {
-    // → Send to your firm (attachments are in params.attachments)
-    await emailjs.send(serviceId, firmTplId, params);
+  // 6️⃣ Prepare attachments for EmailJS options
+  //    EmailJS expects: { filename, content (base64), encoding: 'base64' }
+  const emailJsAttachments = attachments.map(att => {
+    // att.data looks like: "data:<mime>;base64,AAAA..."
+    const [, base64] = att.data.split(',');
+    return {
+      filename: att.name,
+      content:  base64,
+      encoding: 'base64'
+    };
+  });
 
-    // → Send to the client (using {{user_email}} as the To: address)
-    await emailjs.send(serviceId, clientTplId, params);
+  try {
+    // → Send to your firm, passing attachments in the options parameter
+    await emailjs.send(
+      serviceId,
+      firmTplId,
+      templateParams,
+      { attachments: emailJsAttachments }
+    );
+
+    // → Send to the client (using {{user_email}} in the To: field)
+    await emailjs.send(
+      serviceId,
+      clientTplId,
+      templateParams,
+      { attachments: emailJsAttachments }
+    );
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Both emails sent successfully' })
+      body: JSON.stringify({ message: 'Emails sent successfully' })
     };
 
   } catch (err) {
     console.error('EmailJS error:', err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: err.text || err.message || 'EmailJS error' })
+      body: JSON.stringify({ error: err.text || err.message || 'EmailJS failure' })
     };
   }
 };
