@@ -7,10 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- EmailJS client SDK -->
   <script src="https://cdn.emailjs.com/sdk/2.6.4/email.min.js"></script>
-   <script>
-    // replace 'your_public_key' with the one from your EmailJS dashboard
-    emailjs.init('WA50Mk7YHTgs6jkRU');
-  </script>
+   <script>emailjs.init('WA50Mk7YHTgs6jkRU');</script>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -143,8 +140,6 @@
   </div> <!-- /.wrapper -->
 
   <script>
-     // ==== EmailJS SDK initialization ====
-  emailjs.init('YOUR_EMAILJS_PUBLIC_KEY');
   // --- CONFIGURATION ---
   const appConfig = { version: '1.0', enableAiRecommendations: true };
   const auditConfig = { questions: [
@@ -243,7 +238,7 @@
     const app = {
       currentQuestionIndex: 0,
       answers: {},
-      fileUploads: {},
+      this.fileUploads: {},
       formContainer: document.getElementById('form-container'),
       progressBar: document.getElementById('progress-bar'),
       progressContainer: document.getElementById('progress-container'),
@@ -543,6 +538,18 @@ handleFileUpload(e) {
     };
   }
 },
+      /** 
+   * Convert a File into a Base64 data URI string.
+    * We'll use this in submitLead() to attach the file to EmailJS.
+    */
+   async toBase64(file) {
+     return new Promise((resolve, reject) => {
+       const reader = new FileReader();
+       reader.readAsDataURL(file);
+       reader.onload  = () => resolve(reader.result);
+       reader.onerror = err => reject(err);
+     });
+   }, 
 
       handleConditionalUpload(e) {
         if(e.target.type!=='radio') return;
