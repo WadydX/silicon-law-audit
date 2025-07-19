@@ -239,7 +239,6 @@
       currentQuestionIndex: 0,
       answers: {},
       fileUploads: {},
-      formContainer: document.getElementById('form-container'),
       progressBar: document.getElementById('progress-bar'),
       progressContainer: document.getElementById('progress-container'),
       resultsScreen: document.getElementById('results-screen'),
@@ -728,6 +727,7 @@ async submitLead() {
     });
   }
 
+  console.log('▶ payload going to Netlify:', JSON.stringify(payload, null, 2));
   // send exactly the same JSON to your Netlify function
   fetch('/.netlify/functions/send-email', {
     method: 'POST',
