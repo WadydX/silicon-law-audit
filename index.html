@@ -239,6 +239,7 @@
     const app = {
       currentQuestionIndex: 0,
       answers: {},
+      fileUploads: {},
       formContainer: document.getElementById('form-container'),
       progressBar: document.getElementById('progress-bar'),
       progressContainer: document.getElementById('progress-container'),
@@ -516,16 +517,28 @@
         return true;
       },
 
-      handleFileUpload(e) {
-        const el=e.target;
-        const id=el.id.replace('file-upload-','');
-        const fileNameEl=document.getElementById(`file-name-${id}`);
-        if(el.files.length>0){
-          const file=el.files[0];
-          fileNameEl.textContent=`Selected: ${file.name}`;
-          this.answers[`${id}_file`]={question:`File for ${id}`,answer:file.name};
-        }
-      },
+handleFileUpload(e) {
+  const fileInput = e.target;
+  const qid = fileInput.id.replace('file-upload-', '');
+  const fileNameEl = document.getElementById(`file-name-${qid}`);
+
+  if (fileInput.files.length > 0) {
+    // grab the actual File object
+    const file = fileInput.files[0];
+
+    // 1) store it so we can later send/upload it:
+    this.fileUploads[qid] = file;
+
+    // 2) update the little filename caption:
+    fileNameEl.textContent = `Selected: ${file.name}`;
+
+    // 3) still record the filename in answers for your summary:
+    this.answers[`${qid}_fileName`] = {
+      question: `File for ${qid}`,
+      answer: file.name
+    };
+  }
+},
 
       handleConditionalUpload(e) {
         if(e.target.type!=='radio') return;
