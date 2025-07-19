@@ -36,6 +36,7 @@ exports.handler = async (event) => {
     full_summary,
     attachments = []           // <-- optional array of { name, data }
   } = body;
+console.log('📎 attachments received in function:', attachments.length, attachments.map(a=>a.name));
 
   if (!user_name || !user_email || !company_name || !full_summary) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Missing required fields' }) };
