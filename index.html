@@ -238,7 +238,7 @@
     const app = {
       currentQuestionIndex: 0,
       answers: {},
-      this.fileUploads: {},
+      fileUploads: {},
       formContainer: document.getElementById('form-container'),
       progressBar: document.getElementById('progress-bar'),
       progressContainer: document.getElementById('progress-container'),
@@ -698,35 +698,47 @@ ${promptSummary}
         }
       },
 
-      submitLead() {
-        const payload={
-          user_name:`${this.answers.firstName.answer} ${this.answers.lastName.answer}`,
-          user_email:this.answers.email.answer,
-          email:this.answers.email.answer,
-          company_name:this.answers.companyName.answer,
-          phone_number:this.answers.phone.answer||'',
-          compliance_score:this.calculateScore(),
-          full_summary:Object.entries(this.answers)
-            .map(([k,v])=>`${v.question}: ${Array.isArray(v.answer)?v.answer.join(', '):v.answer}`)
-            .join('\n')
-        };
+ 
+    async submitLead() {
+      // 1) build your normal payload
+      const payload = {
+        user_name: `${this.answers.firstName.answer} ${this.answers.lastName.answer}`,
+        user_email: this.answers.email.answer,
+        email: this.answers.email.answer,
+        company_name: this.answers.companyName.answer,
+        phone_number: this.answers.phone.answer || '',
+        compliance_score: this.calculateScore(),
+        full_summary: Object.entries(this.answers)
+          .map(([k, v]) => `${v.question}: ${Array.isArray(v.answer) ? v.answer.join(', ') : v.answer}`)
+          .join('\n'),
+        // 2) initialize attachments array
+        attachments: []
+      };
 
-        fetch('/.netlify/functions/send-email',{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify(payload)
-        })
-  .then(response => {
-    // Don't show any user-facing pop-ups for email status
-    // console.log('Email send response:', response.status);
-    return response.json().catch(() => ({}));
-  })
-  .catch(error => {
-    console.error('Error submitting lead:', error);
-    // If you still want to show errors, uncomment:
-    // this.showMessage('Could not send emails. Please try again later.', 'error');
-  });
-},
+      // 3) convert each File -> Base64 and push into attachments
+      for (const [qid, file] of Object.entries(this.fileUploads)) {
+        try {
+          const dataUri = await this.toBase64(file);
+          payload.attachments.push({
+            name: file.name,
+            data: dataUri
+          });
+        } catch (err) {
+          console.error('Failed to encode file:', err);
+        }
+      }
+
+      // 4) POST everything to Netlify
+      fetch('/.netlify/functions/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then(() => { /* no UI pingback */ })
+        .catch(error => console.error('Error submitting lead:', error));
+    },
+
+
 
       showMessage(message,type='error'){
         this.messageText.textContent=message;
