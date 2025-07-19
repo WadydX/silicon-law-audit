@@ -9,32 +9,32 @@ emailjs.init({
 });
 
 exports.handler = async (event) => {
+  // Only allow POST
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
       headers: { Allow: 'POST' },
-      body: JSON.stringify({ error: 'Method Not Allowed' })
+      body: JSON.stringify({ error: 'Method Not Allowed' }),
     };
   }
 
   // 2) Parse JSON
   let body;
   try {
-    body = typeof event.body === 'string'
-      ? JSON.parse(event.body)
-      : event.body;
+    body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
   } catch {
     return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON body' }) };
   }
 
-  // 3) Destructure & validate
+  // 3) Destructure & validate (include attachments array)
   const {
     user_name,
     user_email,
     company_name,
     phone_number = '',
     compliance_score,
-    full_summary
+    full_summary,
+    attachments = []           // <-- optional array of { name, data }
   } = body;
 
   if (!user_name || !user_email || !company_name || !full_summary) {
@@ -48,7 +48,7 @@ exports.handler = async (event) => {
   if (!serviceId || !firmTplId || !clientTplId) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Server configuration error' })
+      body: JSON.stringify({ error: 'Server configuration error' }),
     };
   }
 
@@ -62,14 +62,40 @@ exports.handler = async (event) => {
     full_summary,
   };
 
+  // 6) Map incoming attachments into EmailJS format
+  //    EmailJS wants: { filename, content (Base64), encoding: 'base64' }
+  const emailJsAttachments = attachments.map(att => {
+    // att.data is like "data:application/pdf;base64,JVBERi0xLjcKJc..."
+    const [, base64] = att.data.split(',');
+    return {
+      filename: att.name,
+      content:  base64,
+      encoding: 'base64'
+    };
+  });
+
   try {
-    // → Send to your firm
-    await emailjs.send(serviceId, firmTplId, params);
+    // → Send to your firm, including attachments
+    await emailjs.send(
+      serviceId,
+      firmTplId,
+      params,
+      { attachments: emailJsAttachments }
+    );
 
-    // → Send to the client (using {{user_email}} in the To-Email field)
-    await emailjs.send(serviceId, clientTplId, params);
+    // → Send to the client (using {{user_email}} as the "To" address)
+    await emailjs.send(
+      serviceId,
+      clientTplId,
+      params,
+      { attachments: emailJsAttachments }
+    );
 
-    return { statusCode: 200, body: JSON.stringify({ message: 'Both emails sent successfully' }) };
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: 'Both emails sent successfully' })
+    };
+
   } catch (err) {
     console.error('EmailJS error:', err);
     return {
