@@ -1,659 +1,625 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Silicon Law - Legal Compliance Audit</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<!-- EmailJS client SDK -->
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@2.6.4/dist/email.min.js"></script>
-<script>emailjs.init('WA50Mk7YHTgs6jkRU');</script>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<style>
-body { font-family: 'Inter', sans-serif; }
-.form-screen { transition: opacity 0.5s, transform 0.5s; }
-.form-screen.hidden {
-opacity: 0;
-transform: translateX(20px);
-pointer-events: none;
-position: absolute;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Silicon Law - Legal Compliance Audit</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .form-screen { transition: opacity 0.5s, transform 0.5s; }
+    .form-screen.hidden {
+      opacity: 0;
+      transform: translateX(20px);
+      pointer-events: none;
+      position: absolute;
+    }
+    .form-screen.previous { transform: translateX(-20px); }
+    .radial-progress {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  /* old hard-coded color removed */
+  background: conic-gradient(var(--gauge-color) var(--progress), #e5e7eb 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.form-screen.previous { transform: translateX(-20px); }
-.radial-progress {
-position: relative;
-width: 200px;
-height: 200px;
-border-radius: 50%;
-/* old hard-coded color removed */
-background: conic-gradient(var(--gauge-color) var(--progress), #e5e7eb 0);
-display: flex;
-align-items: center;
-justify-content: center;
-}
-.radial-progress::before {
-content: '';
-position: absolute;
-width: 170px; height: 170px;
-background: white;
-border-radius: 50%;
-}
-.radial-progress-text {
-position: relative;
-font-size: 2.5rem;
-font-weight: bold;
-color: #1f2937;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.loader {
-border: 4px solid rgba(255,255,255,0.3);
-width: 24px; height: 24px; border-radius: 50%;
-border-left-color: #ffffff;
-animation: spin 1s linear infinite;
-}
-</style>
+    .radial-progress::before {
+      content: '';
+      position: absolute;
+      width: 170px; height: 170px;
+      background: white;
+      border-radius: 50%;
+    }
+    .radial-progress-text {
+      position: relative;
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #1f2937;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader {
+      border: 4px solid rgba(255,255,255,0.3);
+      width: 24px; height: 24px; border-radius: 50%;
+      border-left-color: #ffffff;
+      animation: spin 1s linear infinite;
+    }
+  </style>
 </head>
 <body class="bg-gray-50 text-gray-800 flex items-center justify-center min-h-screen">
 
-<!-- WRAPPER -->
-<div class="w-full max-w-2xl mx-auto p-4 md:p-8">
+  <!-- WRAPPER -->
+  <div class="w-full max-w-2xl mx-auto p-4 md:p-8">
     <div id="app-container" class="bg-white rounded-2xl shadow-lg p-6 md:p-10 transition-all">
 
-<form id="audit-form" enctype="multipart/form-data">
-      <div id="app-container" class="bg-white rounded-2xl …">
-<!-- Header with Logo -->
-<div class="text-center mb-6">
-<img
-src="https://static.wixstatic.com/media/fdfc7f_be9ffad049624c1db88a91186876671f~mv2.png"
-alt="Silicon Law Logo"
-class="mx-auto h-16 w-auto"
-/>
-<p class="text-gray-500 mt-1">Legal Compliance Audit</p>
-</div>
+      <!-- Header -->
+      <div class="text-center mb-6">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Silicon Law</h1>
+        <p class="text-gray-500 mt-1">Legal Compliance Audit</p>
+      </div>
 
-<!-- Progress Bar -->
-<div id="progress-container" class="w-full bg-gray-200 rounded-full h-2.5 mb-8">
-<div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%;"></div>
-</div>
+      <!-- Progress Bar -->
+      <div id="progress-container" class="w-full bg-gray-200 rounded-full h-2.5 mb-8">
+        <div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%;"></div>
+      </div>
 
-<!-- Form Screens Container -->
-<div id="form-container" class="relative"></div>
+      <!-- Form Screens Container -->
+      <div id="form-container" class="relative"></div>
 
-<!-- Results Screen -->
-<div id="results-screen" class="hidden text-center">
-<h2 class="text-2xl font-bold mb-4">Your Compliance Score</h2>
-<div class="flex justify-center my-8">
-<div id="radial-progress" class="radial-progress" style="--progress: 0%;">
-<span id="radial-progress-text" class="radial-progress-text">0%</span>
-</div>
-</div>
-<p id="compliance-message" class="text-lg font-medium text-gray-700 mb-8"></p>
+      <!-- Results Screen -->
+      <div id="results-screen" class="hidden text-center">
+        <h2 class="text-2xl font-bold mb-4">Your Compliance Score</h2>
+        <div class="flex justify-center my-8">
+          <div id="radial-progress" class="radial-progress" style="--progress: 0%;">
+            <span id="radial-progress-text" class="radial-progress-text">0%</span>
+          </div>
+        </div>
+        <p id="compliance-message" class="text-lg font-medium text-gray-700 mb-8"></p>
 
-<!-- AI Recommendations Section -->
-<div id="ai-section" class="my-8 hidden">
-<button id="get-ai-recommendations-btn"
-class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition">
-Get AI-Powered Recommendations
-</button>
+        <!-- AI Recommendations Section -->
+        <div id="ai-section" class="my-8 hidden">
+          <button id="get-ai-recommendations-btn"
+                  class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition">
+            Get AI-Powered Recommendations
+          </button>
 
-<div id="ai-recommendations-container"
-class="hidden mt-6 bg-gray-100 p-6 rounded-lg text-left">
-<div id="ai-loader" class="flex justify-center mb-4">
-<div class="loader"></div>
-</div>
-<div id="ai-content"></div>
-</div>
+          <div id="ai-recommendations-container"
+               class="hidden mt-6 bg-gray-100 p-6 rounded-lg text-left">
+            <div id="ai-loader" class="flex justify-center mb-4">
+              <div class="loader"></div>
+            </div>
+            <div id="ai-content"></div>
+          </div>
 
-<!-- Schedule a Consultation Button -->
-<div class="mt-6 text-center">
-<a href="mailto:info@silicon.law"
-class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition">
-Schedule a Consultation
-</a>
-</div>
-</div>
+          <!-- Schedule a Consultation Button -->
+          <div class="mt-6 text-center">
+            <a href="mailto:info@silicon.law"
+               class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition">
+              Schedule a Consultation
+            </a>
+          </div>
+        </div>
 
-<!-- Restart -->
-<button id="restart-btn" class="mt-8 text-indigo-600 hover:underline">
-Start Over
-</button>
-</div>
+        <!-- Restart -->
+        <button id="restart-btn" class="mt-8 text-indigo-600 hover:underline">
+          Start Over
+        </button>
+      </div>
 
-<!-- Message Box -->
-<div id="message-box"
-class="hidden fixed top-5 right-5 bg-red-500 text-white py-2 px-4 rounded-lg shadow-lg">
-<p id="message-text"></p>
-</div>
+      <!-- Message Box -->
+      <div id="message-box"
+           class="hidden fixed top-5 right-5 bg-red-500 text-white py-2 px-4 rounded-lg shadow-lg">
+        <p id="message-text"></p>
+      </div>
 
-</div> <!-- /#app-container -->
-<!-- FOOTER DISCLAIMER -->
-<footer class="mt-12 text-center text-sm text-gray-500 px-4">
-<p>
-This assessment is for informational purposes only and does not constitute legal advice, nor does it create
-a solicitor-client relationship. If legal issues are identified, we strongly recommend seeking prompt
-legal advice.
-</p>
-<p class="mt-2">
-Your personal data will be held by Silicon Law Ltd in accordance with our
-<a href="https://www.silicon.law/privacy-policy" class="underline">privacy policy</a>.
-</p>
-</footer>
-</div> <!-- /.wrapper -->
+    </div> <!-- /#app-container -->
+    <!-- FOOTER DISCLAIMER -->
+    <footer class="mt-12 text-center text-sm text-gray-500 px-4">
+      <p>
+        This assessment is for informational purposes only and does not constitute legal advice, nor does it create
+        a solicitor-client relationship. If legal issues are identified, we strongly recommend seeking prompt
+        legal advice.
+      </p>
+      <p class="mt-2">
+        Your personal data will be held by Silicon Law Ltd in accordance with our
+        <a href="https://www.silicon.law/privacy-policy" class="underline">privacy policy</a>.
+      </p>
+    </footer>
+  </div> <!-- /.wrapper -->
 
-<script>
-// --- CONFIGURATION ---
-const appConfig = { version: '1.0', enableAiRecommendations: true };
-const auditConfig = { questions: [
-{ id: 'companyName', section: 'Your Details', text: 'Company Name', type: 'text', weight: 0, required: true },
-{ id: 'firstName',  section: 'Your Details', text: 'First Name',    type: 'text', weight: 0, required: true },
-{ id: 'lastName',   section: 'Your Details', text: 'Last Name',     type: 'text', weight: 0, required: true },
-{ id: 'email',      section: 'Your Details', text: 'Email',         type: 'email',weight: 0, required: true },
-{ id: 'phone',      section: 'Your Details', text: 'Phone Number',  type: 'tel',  weight: 0, required: false },
-{ id: 'shareholdersAgreement', section: 'Corporate', text: 'Do you have shareholders agreement in place?', type:'radio', weight:10, required:true, options:[{text:'Yes',score:10,triggerUpload:true},{text:'No',score:0},{text:'No, I am the sole shareholder',score:10}]},
-{ id: 'corporateStructure', section:'Corporate', text:'Have you ever considered a corporate group structure?', type:'textarea', weight:5, required:true, scoreLogic:value=>value.length>5?5:0},
-{ id: 'insurance', section:'Compliance', text:'Do you have insurance?', type:'checkbox', weight:10, required:true, options:[
-{text:'I do not have any insurance',score:0},
-{text:'Employers Liability Insurance',score:2.5},
-{text:'Public Liability',score:2.5},
-{text:'Professional Indemnity',score:2.5},
-{text:'Cyber Cover',score:2.5},
-{text:'Other',score:0}
-]},
-{ id:'websiteUrl', section:'Compliance', text:'What is your company website URL?', type:'url', weight:0, required:true},
-{ id:'cookieBanner',section:'Compliance', text:'Does your website have a consent/cookie banner?', type:'radio', weight:5, required:true, options:[
-{text:'Yes',score:5},{text:'No',score:0},{text:'Unsure',score:1}
-]},
-{ id:'privacyPolicy', section:'Compliance', text:'Do you have a privacy policy?', type:'radio', weight:10, required:true, options:[
-{text:'Yes',score:10,triggerUpload:true},{text:'No',score:0}
-]},
-{ id:'cookiePolicy', section:'Compliance', text:'Do you have a cookie policy?', type:'radio', weight:5, required:true, options:[
-{text:'Yes',score:5,triggerUpload:true},{text:'No',score:0}
-]},
-{ id:'breachPolicy', section:'Compliance', text:'Do you have a breach policy and notification procedure?', type:'radio', weight:5, required:true, options:[
-{text:'Yes',score:5,triggerUpload:true},{text:'No',score:0}
-]},
-{ id:'infoSecPolicy', section:'Compliance', text:'Do you have an information security policy?', type:'radio', weight:5, required:true, options:[
-{text:'Yes',score:5,triggerUpload:true},{text:'No',score:0}
-]},
-{ id:'dpTraining', section:'Compliance', text:'Do you provide annual data protection training to your staff?', type:'radio', weight:5, required:true, options:[
-{text:'Yes',score:5},{text:'No',score:0},{text:'I do not have staff',score:5}
-]},
-{ id:'taxAdvisor', section:'Tax and Accountancy', text:'Have you ever worked with, or received assistance from a tax advisor?', type:'radio', weight:5, required:true, options:[
-{text:'Yes, I am all set',score:5},{text:'Yes, but I would like to speak to one again',score:3},
-{text:'No and I do not wish to speak to one',score:0},{text:'No, but I would like to speak to one',score:1}
-]},
-{ id:'hasAccountant', section:'Tax and Accountancy', text:'Do you have an accountant?', type:'radio', weight:5, required:true, options:[
-{text:'Yes',score:5},{text:'No',score:0}
-]},
-{ id:'proactiveAdvice', section:'Tax and Accountancy', text:'Does your accountant give you proactive tax advice?', type:'radio', weight:5, required:true,
-condition:{questionId:'hasAccountant',value:'Yes'},
-options:[{text:'Yes',score:5},{text:'No',score:1}]
-},
-{ id:'hasEmployees', section:'Staff', text:'Do you have employees?', type:'radio', weight:0, required:true, options:[
-{text:'Yes',score:0},{text:'No',score:0}
-]},
-{ id:'staffHandbook', section:'Staff', text:'Do you have staff handbook?', type:'radio', weight:10, required:true,
-condition:{questionId:'hasEmployees',value:'Yes'},
-options:[{text:'Yes',score:10,triggerUpload:true},{text:'No',score:0}]
-},
-{ id:'employeeLocation', section:'Staff', text:'Where are your employees located?', type:'checkbox', weight:0, required:true,
-condition:{questionId:'hasEmployees',value:'Yes'},
-options:[{text:'UK',score:0},{text:'EEA',score:0},{text:'USA',score:0},{text:'Global',score:0}]
-},
-{ id:'useConsultants', section:'Staff', text:'Do you use consultants or contractors?', type:'radio', weight:0, required:true, options:[
-{text:'Yes',score:0},{text:'No',score:0}
-]},
-{ id:'consultantAgreements', section:'Staff', text:'Do you have consultancy or contractor agreements?', type:'radio', weight:10, required:true,
-condition:{questionId:'useConsultants',value:'Yes'},
-options:[{text:'Yes',score:10,triggerUpload:true},{text:'No',score:0}]
-},
-{ id:'consultantLocation', section:'Staff', text:'Where are your consultants and contractors located?', type:'checkbox', weight:0, required:true,
-condition:{questionId:'useConsultants',value:'Yes'},
-options:[{text:'UK',score:0},{text:'EEA',score:0},{text:'USA',score:0},{text:'Global',score:0}]
-},
-{ id:'ipAssignment', section:'Staff', text:'Do you have an IP Assignment Agreement ...?', type:'radio', weight:10, required:true, options:[
-{text:'Yes',score:10,triggerUpload:true},{text:'No',score:0}
-]},
-{ id:'annualRevenue', section:'Commercial', text:'What is your annual revenue?', type:'select', weight:0, required:true, options:[
-{text:'Please Select',score:0},{text:'£0 - £50,000',score:0},
-{text:'£50,001 - £250,000',score:0},{text:'£250,001 - £1,000,000',score:0},
-{text:'£1,000,001+',score:0}
-]},
-{ id:'clientLocation', section:'Commercial', text:'Where are your clients located?', type:'checkbox', weight:0, required:true, options:[
-{text:'UK',score:0},{text:'EEA',score:0},{text:'USA',score:0},{text:'Global',score:0}
-]},
-{ id:'serviceModel', section:'Commercial', text:'What is your service model?', type:'radio', weight:0, required:true, options:[
-{text:'B2B',score:0},{text:'B2C',score:0},{text:'Both',score:0},{text:'Other',score:0}
-]},
-{ id:'sellType', section:'Commercial', text:'What do you sell?', type:'checkbox', weight:0, required:true, options:[
-{text:'Physical Goods',score:0},{text:'Digital Products',score:0},
-{text:'Services',score:0},{text:'Software',score:0},{text:'Other',score:0}
-]},
-{ id:'hasTerms', section:'Commercial', text:'Do you have terms and conditions for what you sell?', type:'radio', weight:10, required:true, options:[
-{text:'Yes',score:10,triggerUpload:true},{text:'No',score:0}
-]},
-{ id:'focusArea', section:'Submission', text:"Is there anything you'd like to add or any specific you'd like us to focus on?", type:'textarea', weight:0, required:false }
-]};
+  <script>
+  // --- CONFIGURATION ---
+  const appConfig = { version: '1.0', enableAiRecommendations: true };
+  const auditConfig = { questions: [
+    { id: 'companyName', section: 'Your Details', text: 'Company Name', type: 'text', weight: 0, required: true },
+    { id: 'firstName',  section: 'Your Details', text: 'First Name',    type: 'text', weight: 0, required: true },
+    { id: 'lastName',   section: 'Your Details', text: 'Last Name',     type: 'text', weight: 0, required: true },
+    { id: 'email',      section: 'Your Details', text: 'Email',         type: 'email',weight: 0, required: true },
+    { id: 'phone',      section: 'Your Details', text: 'Phone Number',  type: 'tel',  weight: 0, required: false },
+    { id: 'shareholdersAgreement', section: 'Corporate', text: 'Do you have shareholders agreement in place?', type:'radio', weight:10, required:true, options:[{text:'Yes',score:10,triggerUpload:true},{text:'No',score:0},{text:'No, I am the sole shareholder',score:10}]},
+    { id: 'corporateStructure', section:'Corporate', text:'Have you ever considered a corporate group structure?', type:'textarea', weight:5, required:true, scoreLogic:value=>value.length>5?5:0},
+    { id: 'insurance', section:'Compliance', text:'Do you have insurance?', type:'checkbox', weight:10, required:true, options:[
+      {text:'I do not have any insurance',score:0},
+      {text:'Employers Liability Insurance',score:2.5},
+      {text:'Public Liability',score:2.5},
+      {text:'Professional Indemnity',score:2.5},
+      {text:'Cyber Cover',score:2.5},
+      {text:'Other',score:0}
+    ]},
+    { id:'websiteUrl', section:'Compliance', text:'What is your company website URL?', type:'url', weight:0, required:true},
+    { id:'cookieBanner',section:'Compliance', text:'Does your website have a consent/cookie banner?', type:'radio', weight:5, required:true, options:[
+      {text:'Yes',score:5},{text:'No',score:0},{text:'Unsure',score:1}
+    ]},
+    { id:'privacyPolicy', section:'Compliance', text:'Do you have a privacy policy?', type:'radio', weight:10, required:true, options:[
+      {text:'Yes',score:10,triggerUpload:true},{text:'No',score:0}
+    ]},
+    { id:'cookiePolicy', section:'Compliance', text:'Do you have a cookie policy?', type:'radio', weight:5, required:true, options:[
+      {text:'Yes',score:5,triggerUpload:true},{text:'No',score:0}
+    ]},
+    { id:'breachPolicy', section:'Compliance', text:'Do you have a breach policy and notification procedure?', type:'radio', weight:5, required:true, options:[
+      {text:'Yes',score:5,triggerUpload:true},{text:'No',score:0}
+    ]},
+    { id:'infoSecPolicy', section:'Compliance', text:'Do you have an information security policy?', type:'radio', weight:5, required:true, options:[
+      {text:'Yes',score:5,triggerUpload:true},{text:'No',score:0}
+    ]},
+    { id:'dpTraining', section:'Compliance', text:'Do you provide annual data protection training to your staff?', type:'radio', weight:5, required:true, options:[
+      {text:'Yes',score:5},{text:'No',score:0},{text:'I do not have staff',score:5}
+    ]},
+    { id:'taxAdvisor', section:'Tax and Accountancy', text:'Have you ever worked with, or received assistance from a tax advisor?', type:'radio', weight:5, required:true, options:[
+      {text:'Yes, I am all set',score:5},{text:'Yes, but I would like to speak to one again',score:3},
+      {text:'No and I do not wish to speak to one',score:0},{text:'No, but I would like to speak to one',score:1}
+    ]},
+    { id:'hasAccountant', section:'Tax and Accountancy', text:'Do you have an accountant?', type:'radio', weight:5, required:true, options:[
+      {text:'Yes',score:5},{text:'No',score:0}
+    ]},
+    { id:'proactiveAdvice', section:'Tax and Accountancy', text:'Does your accountant give you proactive tax advice?', type:'radio', weight:5, required:true,
+      condition:{questionId:'hasAccountant',value:'Yes'},
+      options:[{text:'Yes',score:5},{text:'No',score:1}]
+    },
+    { id:'hasEmployees', section:'Staff', text:'Do you have employees?', type:'radio', weight:0, required:true, options:[
+      {text:'Yes',score:0},{text:'No',score:0}
+    ]},
+    { id:'staffHandbook', section:'Staff', text:'Do you have staff handbook?', type:'radio', weight:10, required:true,
+      condition:{questionId:'hasEmployees',value:'Yes'},
+      options:[{text:'Yes',score:10,triggerUpload:true},{text:'No',score:0}]
+    },
+    { id:'employeeLocation', section:'Staff', text:'Where are your employees located?', type:'checkbox', weight:0, required:true,
+      condition:{questionId:'hasEmployees',value:'Yes'},
+      options:[{text:'UK',score:0},{text:'EEA',score:0},{text:'USA',score:0},{text:'Global',score:0}]
+    },
+    { id:'useConsultants', section:'Staff', text:'Do you use consultants or contractors?', type:'radio', weight:0, required:true, options:[
+      {text:'Yes',score:0},{text:'No',score:0}
+    ]},
+    { id:'consultantAgreements', section:'Staff', text:'Do you have consultancy or contractor agreements?', type:'radio', weight:10, required:true,
+      condition:{questionId:'useConsultants',value:'Yes'},
+      options:[{text:'Yes',score:10,triggerUpload:true},{text:'No',score:0}]
+    },
+    { id:'consultantLocation', section:'Staff', text:'Where are your consultants and contractors located?', type:'checkbox', weight:0, required:true,
+      condition:{questionId:'useConsultants',value:'Yes'},
+      options:[{text:'UK',score:0},{text:'EEA',score:0},{text:'USA',score:0},{text:'Global',score:0}]
+    },
+    { id:'ipAssignment', section:'Staff', text:'Do you have an IP Assignment Agreement ...?', type:'radio', weight:10, required:true, options:[
+      {text:'Yes',score:10,triggerUpload:true},{text:'No',score:0}
+    ]},
+    { id:'annualRevenue', section:'Commercial', text:'What is your annual revenue?', type:'select', weight:0, required:true, options:[
+      {text:'Please Select',score:0},{text:'£0 - £50,000',score:0},
+      {text:'£50,001 - £250,000',score:0},{text:'£250,001 - £1,000,000',score:0},
+      {text:'£1,000,001+',score:0}
+    ]},
+    { id:'clientLocation', section:'Commercial', text:'Where are your clients located?', type:'checkbox', weight:0, required:true, options:[
+      {text:'UK',score:0},{text:'EEA',score:0},{text:'USA',score:0},{text:'Global',score:0}
+    ]},
+    { id:'serviceModel', section:'Commercial', text:'What is your service model?', type:'radio', weight:0, required:true, options:[
+      {text:'B2B',score:0},{text:'B2C',score:0},{text:'Both',score:0},{text:'Other',score:0}
+    ]},
+    { id:'sellType', section:'Commercial', text:'What do you sell?', type:'checkbox', weight:0, required:true, options:[
+      {text:'Physical Goods',score:0},{text:'Digital Products',score:0},
+      {text:'Services',score:0},{text:'Software',score:0},{text:'Other',score:0}
+    ]},
+    { id:'hasTerms', section:'Commercial', text:'Do you have terms and conditions for what you sell?', type:'radio', weight:10, required:true, options:[
+      {text:'Yes',score:10,triggerUpload:true},{text:'No',score:0}
+    ]},
+    { id:'focusArea', section:'Submission', text:"Is there anything you'd like to add or any specific you'd like us to focus on?", type:'textarea', weight:0, required:false }
+  ]};
 
-document.addEventListener('DOMContentLoaded', () => {
-const app = {
-currentQuestionIndex: 0,
-answers: {},
-fileUploads: {},
-formContainer: document.getElementById('form-container'),
-progressBar: document.getElementById('progress-bar'),
-progressContainer: document.getElementById('progress-container'),
-resultsScreen: document.getElementById('results-screen'),
-restartBtn: document.getElementById('restart-btn'),
-messageBox: document.getElementById('message-box'),
-messageText: document.getElementById('message-text'),
-aiSection: document.getElementById('ai-section'),
-getAiRecommendationsBtn: document.getElementById('get-ai-recommendations-btn'),
-aiRecommendationsContainer: document.getElementById('ai-recommendations-container'),
-aiLoader: document.getElementById('ai-loader'),
-aiContent: document.getElementById('ai-content'),
+  document.addEventListener('DOMContentLoaded', () => {
+    const app = {
+      currentQuestionIndex: 0,
+      answers: {},
+      formContainer: document.getElementById('form-container'),
+      progressBar: document.getElementById('progress-bar'),
+      progressContainer: document.getElementById('progress-container'),
+      resultsScreen: document.getElementById('results-screen'),
+      restartBtn: document.getElementById('restart-btn'),
+      messageBox: document.getElementById('message-box'),
+      messageText: document.getElementById('message-text'),
+      aiSection: document.getElementById('ai-section'),
+      getAiRecommendationsBtn: document.getElementById('get-ai-recommendations-btn'),
+      aiRecommendationsContainer: document.getElementById('ai-recommendations-container'),
+      aiLoader: document.getElementById('ai-loader'),
+      aiContent: document.getElementById('ai-content'),
 
-init() {
-this.buildForm();
-this.showQuestion(0);
-this.attachEventListeners();
-},
+      init() {
+        this.buildForm();
+        this.showQuestion(0);
+        this.attachEventListeners();
+      },
 
-getVisibleQuestions() {
-const nonDetail = auditConfig.questions.filter(q=>q.section!=='Your Details');
-return nonDetail.filter(q=>{
-if(!q.condition) return true;
-const ans = this.answers[q.condition.questionId];
-return ans && ans.answer===q.condition.value;
-});
-},
+      getVisibleQuestions() {
+        const nonDetail = auditConfig.questions.filter(q=>q.section!=='Your Details');
+        return nonDetail.filter(q=>{
+          if(!q.condition) return true;
+          const ans = this.answers[q.condition.questionId];
+          return ans && ans.answer===q.condition.value;
+        });
+      },
 
-buildForm() {
-this.formContainer.innerHTML = '';
+      buildForm() {
+        this.formContainer.innerHTML = '';
 
-// Details screen
-const detailQs = auditConfig.questions.filter(q=>q.section==='Your Details');
-const detailsScreen = document.createElement('div');
-detailsScreen.id='question-0';
-detailsScreen.className='form-screen';
-detailsScreen.innerHTML=this.getDetailsScreenHTML(detailQs);
-this.formContainer.appendChild(detailsScreen);
+        // Details screen
+        const detailQs = auditConfig.questions.filter(q=>q.section==='Your Details');
+        const detailsScreen = document.createElement('div');
+        detailsScreen.id='question-0';
+        detailsScreen.className='form-screen';
+        detailsScreen.innerHTML=this.getDetailsScreenHTML(detailQs);
+        this.formContainer.appendChild(detailsScreen);
 
-// Other questions
-const otherQs = auditConfig.questions.filter(q=>q.section!=='Your Details');
-otherQs.forEach((q,i)=>{
-const screen=document.createElement('div');
-screen.id=`question-${i+1}`;
-screen.className='form-screen hidden';
-screen.innerHTML=this.getQuestionHTML(q,i+1);
-this.formContainer.appendChild(screen);
-});
-},
+        // Other questions
+        const otherQs = auditConfig.questions.filter(q=>q.section!=='Your Details');
+        otherQs.forEach((q,i)=>{
+          const screen=document.createElement('div');
+          screen.id=`question-${i+1}`;
+          screen.className='form-screen hidden';
+          screen.innerHTML=this.getQuestionHTML(q,i+1);
+          this.formContainer.appendChild(screen);
+        });
+      },
 
-getDetailsScreenHTML(questions) {
-const fields=questions.map(q=>{
-const req=q.required?'<span class="text-red-500 ml-1">*</span>':'';
-return `
-           <div>
-             <label for="q_${q.id}" class="block text-sm font-medium text-gray-700 mb-1">
-               ${q.text}${req}
-             </label>
-             <input type="${q.type}" id="q_${q.id}" name="q_${q.id}"
-                    placeholder="${q.text}"
-                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
-           </div>`;
-}).join('');
-return `
-         <div class="text-center">
-           <p class="text-sm font-semibold text-indigo-600 mb-2">Your Details</p>
-           <h3 class="text-xl md:text-2xl font-semibold mb-6">Let's start with some basic information</h3>
-         </div>
-         <div class="space-y-4">${fields}</div>
-         <div class="flex justify-end mt-8">
-           <button data-action="next" data-index="0"
-                   class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition">
-             Next
-           </button>
-         </div>`;
-},
+      getDetailsScreenHTML(questions) {
+        const fields=questions.map(q=>{
+          const req=q.required?'<span class="text-red-500 ml-1">*</span>':'';
+          return `
+            <div>
+              <label for="q_${q.id}" class="block text-sm font-medium text-gray-700 mb-1">
+                ${q.text}${req}
+              </label>
+              <input type="${q.type}" id="q_${q.id}" name="q_${q.id}"
+                     placeholder="${q.text}"
+                     class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
+            </div>`;
+        }).join('');
+        return `
+          <div class="text-center">
+            <p class="text-sm font-semibold text-indigo-600 mb-2">Your Details</p>
+            <h3 class="text-xl md:text-2xl font-semibold mb-6">Let's start with some basic information</h3>
+          </div>
+          <div class="space-y-4">${fields}</div>
+          <div class="flex justify-end mt-8">
+            <button data-action="next" data-index="0"
+                    class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition">
+              Next
+            </button>
+          </div>`;
+      },
 
-getQuestionHTML(q,index) {
-let optionsHTML='';
-const name=`q_${q.id}`;
-const req=q.required?'<span class="text-red-500 ml-1">*</span>':'';
+      getQuestionHTML(q,index) {
+        let optionsHTML='';
+        const name=`q_${q.id}`;
+        const req=q.required?'<span class="text-red-500 ml-1">*</span>':'';
 
-switch(q.type){
-case 'radio':
-optionsHTML=q.options.map(o=>`
-             <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500">
-               <input type="radio" name="${name}" value="${o.text}"
-                      class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"/>
-               <span class="ml-3 text-gray-700">${o.text}</span>
-             </label>`).join('');
-break;
-case 'checkbox':
-optionsHTML=q.options.map(o=>`
-             <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500">
-               <input type="checkbox" name="${name}" value="${o.text}"
-                      class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"/>
-               <span class="ml-3 text-gray-700">${o.text}</span>
-             </label>`).join('');
-break;
-case 'select':
-optionsHTML=`<select name="${name}"
-             class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-             ${q.options.map(o=>`<option value="${o.text}">${o.text}</option>`).join('')}
-           </select>`;
-break;
-case 'textarea':
-optionsHTML=`<textarea name="${name}" rows="4" placeholder="Please share further details..."
-             class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        switch(q.type){
+          case 'radio':
+            optionsHTML=q.options.map(o=>`
+              <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500">
+                <input type="radio" name="${name}" value="${o.text}"
+                       class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"/>
+                <span class="ml-3 text-gray-700">${o.text}</span>
+              </label>`).join('');
+            break;
+          case 'checkbox':
+            optionsHTML=q.options.map(o=>`
+              <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500">
+                <input type="checkbox" name="${name}" value="${o.text}"
+                       class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"/>
+                <span class="ml-3 text-gray-700">${o.text}</span>
+              </label>`).join('');
+            break;
+          case 'select':
+            optionsHTML=`<select name="${name}"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+              ${q.options.map(o=>`<option value="${o.text}">${o.text}</option>`).join('')}
+            </select>`;
+            break;
+          case 'textarea':
+            optionsHTML=`<textarea name="${name}" rows="4" placeholder="Please share further details..."
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
 </textarea>`;
-break;
-case 'url':
-optionsHTML=`<input type="url" name="${name}" placeholder="https://example.com"
-             class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>`;
-break;
-}
+            break;
+          case 'url':
+            optionsHTML=`<input type="url" name="${name}" placeholder="https://example.com"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>`;
+            break;
+        }
 
-const uploadHTML = q.options?.some(o=>o.triggerUpload) ? `
-         <div id="upload-container-${q.id}" class="hidden mt-4 p-4 border-2 border-dashed rounded-lg">
-           <label for="file-upload-${q.id}" class="cursor-pointer text-indigo-600 hover:text-indigo-800">
-             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-             </svg>
-             Optional: Upload the document
-           </label>
-           <input id="file-upload-${q.id}" type="file" class="hidden" accept=".pdf,.doc,.jpg,.png"/>
-           <p id="file-name-${q.id}" class="text-sm text-gray-500 mt-2"></p>
-         </div>` : '';
+        const uploadHTML = q.options?.some(o=>o.triggerUpload) ? `
+          <div id="upload-container-${q.id}" class="hidden mt-4 p-4 border-2 border-dashed rounded-lg">
+            <label for="file-upload-${q.id}" class="cursor-pointer text-indigo-600 hover:text-indigo-800">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+              </svg>
+              Optional: Upload the document
+            </label>
+            <input id="file-upload-${q.id}" type="file" class="hidden" accept=".pdf,.doc,.jpg,.png"/>
+            <p id="file-name-${q.id}" class="text-sm text-gray-500 mt-2"></p>
+          </div>` : '';
 
-const allNonDetail=auditConfig.questions.filter(z=>z.section!=='Your Details');
-const isLast=index===allNonDetail.length;
-const btnText=isLast?'Submit & See Results':'Next';
+        const allNonDetail=auditConfig.questions.filter(z=>z.section!=='Your Details');
+        const isLast=index===allNonDetail.length;
+        const btnText=isLast?'Submit & See Results':'Next';
 
-return `
-         <div class="text-center">
-           <p class="text-sm font-semibold text-indigo-600 mb-2">${q.section}</p>
-           <h3 class="text-xl md:text-2xl font-semibold mb-6">${q.text}${req}</h3>
-         </div>
-         <div class="space-y-4">${optionsHTML}</div>
-         ${uploadHTML}
-         <div class="flex justify-between mt-8">
-           <button data-action="prev" data-index="${index}"
-                   class="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition">
-             Back
-           </button>
-           <button data-action="next" data-index="${index}"
-                   class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition flex items-center justify-center">
-             ${btnText}
-           </button>
-         </div>`;
-},
+        return `
+          <div class="text-center">
+            <p class="text-sm font-semibold text-indigo-600 mb-2">${q.section}</p>
+            <h3 class="text-xl md:text-2xl font-semibold mb-6">${q.text}${req}</h3>
+          </div>
+          <div class="space-y-4">${optionsHTML}</div>
+          ${uploadHTML}
+          <div class="flex justify-between mt-8">
+            <button data-action="prev" data-index="${index}"
+                    class="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition">
+              Back
+            </button>
+            <button data-action="next" data-index="${index}"
+                    class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition flex items-center justify-center">
+              ${btnText}
+            </button>
+          </div>`;
+      },
 
-showQuestion(idx, dir='next') {
-const cur=document.getElementById(`question-${this.currentQuestionIndex}`);
-if(cur){ cur.classList.add('hidden', dir==='next'?'previous':'next'); }
-let nextIdx=idx;
-if(idx>0){
-const visible=this.getVisibleQuestions();
-const allNonDetail=auditConfig.questions.filter(q=>q.section!=='Your Details');
-let target=allNonDetail[idx-1];
-let visIndex=visible.indexOf(target);
-if(visIndex===-1){
-if(dir==='next'){
-target=visible.find(vq=>allNonDetail.indexOf(vq)>=idx-1);
-} else {
-const rev=[...visible].reverse();
-target=rev.find(vq=>allNonDetail.indexOf(vq)<=idx-1);
-}
-}
-nextIdx= target? allNonDetail.indexOf(target)+1 : -1;
-}
-const nextScreen=document.getElementById(`question-${nextIdx}`);
-if(nextScreen){
-nextScreen.classList.remove('hidden','previous','next');
-this.currentQuestionIndex=nextIdx;
-} else {
-this.showResults();
-}
-this.updateProgress();
-},
+      showQuestion(idx, dir='next') {
+        const cur=document.getElementById(`question-${this.currentQuestionIndex}`);
+        if(cur){ cur.classList.add('hidden', dir==='next'?'previous':'next'); }
+        let nextIdx=idx;
+        if(idx>0){
+          const visible=this.getVisibleQuestions();
+          const allNonDetail=auditConfig.questions.filter(q=>q.section!=='Your Details');
+          let target=allNonDetail[idx-1];
+          let visIndex=visible.indexOf(target);
+          if(visIndex===-1){
+            if(dir==='next'){
+              target=visible.find(vq=>allNonDetail.indexOf(vq)>=idx-1);
+            } else {
+              const rev=[...visible].reverse();
+              target=rev.find(vq=>allNonDetail.indexOf(vq)<=idx-1);
+            }
+          }
+          nextIdx= target? allNonDetail.indexOf(target)+1 : -1;
+        }
+        const nextScreen=document.getElementById(`question-${nextIdx}`);
+        if(nextScreen){
+          nextScreen.classList.remove('hidden','previous','next');
+          this.currentQuestionIndex=nextIdx;
+        } else {
+          this.showResults();
+        }
+        this.updateProgress();
+      },
 
-updateProgress() {
-const steps=this.getVisibleQuestions();
-const allNonDetail=auditConfig.questions.filter(q=>q.section!=='Your Details');
-const curObj=allNonDetail[this.currentQuestionIndex-1];
-const curStep=steps.indexOf(curObj);
-if(this.currentQuestionIndex===0){
-this.progressBar.style.width='0%';
-} else {
-const pct=((curStep+1)/steps.length)*100;
-this.progressBar.style.width=`${pct}%`;
-}
-},
+      updateProgress() {
+        const steps=this.getVisibleQuestions();
+        const allNonDetail=auditConfig.questions.filter(q=>q.section!=='Your Details');
+        const curObj=allNonDetail[this.currentQuestionIndex-1];
+        const curStep=steps.indexOf(curObj);
+        if(this.currentQuestionIndex===0){
+          this.progressBar.style.width='0%';
+        } else {
+          const pct=((curStep+1)/steps.length)*100;
+          this.progressBar.style.width=`${pct}%`;
+        }
+      },
 
-handleNavigation(e) {
-const action=e.target.dataset.action;
-if(!action) return;
-const idx=parseInt(e.target.dataset.index,10);
-const btn=e.target;
-if(action==='next'){
-if(!this.saveAnswer(idx)) return;
-const allNonDetail=auditConfig.questions.filter(q=>q.section!=='Your Details');
-const isLast=idx===allNonDetail.length;
-if(isLast){
-btn.disabled=true;
-btn.innerHTML='<div class="loader"></div>';
-this.submitLead();
-setTimeout(()=>this.showResults(),500);
-} else {
-this.showQuestion(idx+1,'next');
-}
-} else {
-this.showQuestion(idx-1,'prev');
-}
-},
+      handleNavigation(e) {
+        const action=e.target.dataset.action;
+        if(!action) return;
+        const idx=parseInt(e.target.dataset.index,10);
+        const btn=e.target;
+        if(action==='next'){
+          if(!this.saveAnswer(idx)) return;
+          const allNonDetail=auditConfig.questions.filter(q=>q.section!=='Your Details');
+          const isLast=idx===allNonDetail.length;
+          if(isLast){
+            btn.disabled=true;
+            btn.innerHTML='<div class="loader"></div>';
+            this.submitLead();
+            setTimeout(()=>this.showResults(),500);
+          } else {
+            this.showQuestion(idx+1,'next');
+          }
+        } else {
+          this.showQuestion(idx-1,'prev');
+        }
+      },
 
-saveAnswer(idx) {
-if(idx===0){
-const detailQs=auditConfig.questions.filter(q=>q.section==='Your Details');
-let allValid=true;
-for(const q of detailQs){
-const inp=document.getElementById(`q_${q.id}`);
-const val=inp.value.trim();
-if(q.required && !val){
-this.showMessage(`${q.text} is required.`);
-allValid=false; break;
-}
-if(q.type==='email' && val && !/^\S+@\S+\.\S+$/.test(val)){
-this.showMessage('Please enter a valid email address.');
-allValid=false; break;
-}
-this.answers[q.id]={question:q.text,answer:val};
-}
-return allValid;
-}
-const allNonDetail=auditConfig.questions.filter(q=>q.section!=='Your Details');
-const q=allNonDetail[idx-1];
-if(!q) return false;
-const name=`q_${q.id}`;
-const inputs=Array.from(document.querySelectorAll(`[name="${name}"]`));
-let val, valid=false;
-switch(q.type){
-case 'radio':
-const chk=document.querySelector(`[name="${name}"]:checked`);
-if(chk){ val=chk.value; valid=true; }
-break;
-case 'checkbox':
-val= inputs.filter(i=>i.checked).map(i=>i.value);
-if(q.required && val.length===0){
-this.showMessage('Please select at least one option.');
-return false;
-}
-valid=true; break;
-case 'select':
-val=document.querySelector(`[name="${name}"]`).value;
-if(q.required && val==='Please Select'){
-this.showMessage('Please make a selection.');
-return false;
-}
-valid=true; break;
-case 'textarea':
-case 'url':
-val=inputs[0].value.trim();
-if(q.required && !val){
-this.showMessage('This field is required.');
-return false;
-}
-valid=true; break;
-}
-if(q.required && !valid){
-this.showMessage('Please select an option to continue.');
-return false;
-}
-this.answers[q.id]={question:q.text,answer:val};
-return true;
-},
+      saveAnswer(idx) {
+        if(idx===0){
+          const detailQs=auditConfig.questions.filter(q=>q.section==='Your Details');
+          let allValid=true;
+          for(const q of detailQs){
+            const inp=document.getElementById(`q_${q.id}`);
+            const val=inp.value.trim();
+            if(q.required && !val){
+              this.showMessage(`${q.text} is required.`);
+              allValid=false; break;
+            }
+            if(q.type==='email' && val && !/^\S+@\S+\.\S+$/.test(val)){
+              this.showMessage('Please enter a valid email address.');
+              allValid=false; break;
+            }
+            this.answers[q.id]={question:q.text,answer:val};
+          }
+          return allValid;
+        }
+        const allNonDetail=auditConfig.questions.filter(q=>q.section!=='Your Details');
+        const q=allNonDetail[idx-1];
+        if(!q) return false;
+        const name=`q_${q.id}`;
+        const inputs=Array.from(document.querySelectorAll(`[name="${name}"]`));
+        let val, valid=false;
+        switch(q.type){
+          case 'radio':
+            const chk=document.querySelector(`[name="${name}"]:checked`);
+            if(chk){ val=chk.value; valid=true; }
+            break;
+          case 'checkbox':
+            val= inputs.filter(i=>i.checked).map(i=>i.value);
+            if(q.required && val.length===0){
+              this.showMessage('Please select at least one option.');
+              return false;
+            }
+            valid=true; break;
+          case 'select':
+            val=document.querySelector(`[name="${name}"]`).value;
+            if(q.required && val==='Please Select'){
+              this.showMessage('Please make a selection.');
+              return false;
+            }
+            valid=true; break;
+          case 'textarea':
+          case 'url':
+            val=inputs[0].value.trim();
+            if(q.required && !val){
+              this.showMessage('This field is required.');
+              return false;
+            }
+            valid=true; break;
+        }
+        if(q.required && !valid){
+          this.showMessage('Please select an option to continue.');
+          return false;
+        }
+        this.answers[q.id]={question:q.text,answer:val};
+        return true;
+      },
 
-handleFileUpload(e) {
-const fileInput = e.target;
-const qid = fileInput.id.replace('file-upload-', '');
-const fileNameEl = document.getElementById(`file-name-${qid}`);
+      handleFileUpload(e) {
+        const el=e.target;
+        const id=el.id.replace('file-upload-','');
+        const fileNameEl=document.getElementById(`file-name-${id}`);
+        if(el.files.length>0){
+          const file=el.files[0];
+          fileNameEl.textContent=`Selected: ${file.name}`;
+          this.answers[`${id}_file`]={question:`File for ${id}`,answer:file.name};
+        }
+      },
 
-if (fileInput.files.length > 0) {
-// grab the actual File object
-const file = fileInput.files[0];
+      handleConditionalUpload(e) {
+        if(e.target.type!=='radio') return;
+        const name=e.target.name.replace('q_','');
+        const q=auditConfig.questions.find(x=>x.id===name);
+        if(!q) return;
+        const selOpt=q.options.find(o=>o.text===e.target.value);
+        const cont=document.getElementById(`upload-container-${name}`);
+        if(cont){
+          if(selOpt && selOpt.triggerUpload) cont.classList.remove('hidden');
+          else cont.classList.add('hidden');
+        }
+      },
 
-// 1) store it so we can later send/upload it:
-this.fileUploads[qid] = file;
+      calculateScore() {
+        let total=0, max=0;
+        this.getVisibleQuestions().forEach(q=>{
+          if(q.weight>0){
+            max+=q.weight;
+            const ans=this.answers[q.id];
+            if(!ans) return;
+            if(q.scoreLogic){
+              total+=q.scoreLogic(ans.answer);
+            } else if(q.options){
+              let optScore=0;
+              if(q.type==='checkbox'){
+                if(Array.isArray(ans.answer)){
+                  ans.answer.forEach(a=>{
+                    const o=q.options.find(x=>x.text===a);
+                    if(o) optScore+=o.score;
+                  });
+                }
+              } else {
+                const o=q.options.find(x=>x.text===ans.answer);
+                if(o) optScore=o.score;
+              }
+              let maxOpt=q.type==='checkbox'
+                ? q.options.reduce((s,o)=>s+(o.score>0?o.score:0),0)
+                : Math.max(...q.options.map(o=>o.score||0));
+              if(maxOpt>0) total+=(optScore/maxOpt)*q.weight;
+            }
+          }
+        });
+        return max>0?Math.round((total/max)*100):100;
+      },
 
-// 2) update the little filename caption:
-fileNameEl.textContent = `Selected: ${file.name}`;
+      showResults() {
+  this.formContainer.classList.add('hidden');
+  this.progressContainer.classList.add('hidden');
+  this.resultsScreen.classList.remove('hidden');
 
-// 3) still record the filename in answers for your summary:
-this.answers[`${qid}_fileName`] = {
-question: `File for ${qid}`,
-answer: file.name
-};
-}
-},
-/** 
-  * Convert a File into a Base64 data URI string.
-   * We'll use this in submitLead() to attach the file to EmailJS.
-   */
-async toBase64(file) {
-return new Promise((resolve, reject) => {
-const reader = new FileReader();
-reader.readAsDataURL(file);
-reader.onload  = () => resolve(reader.result);
-reader.onerror = err => reject(err);
-});
-}, 
+  const score = this.calculateScore() // e.g. 9
+  const gauge = document.getElementById('radial-progress');
+  const textEl = document.getElementById('radial-progress-text');
+  const messageEl = document.getElementById('compliance-message');
 
-handleConditionalUpload(e) {
-if(e.target.type!=='radio') return;
-const name=e.target.name.replace('q_','');
-const q=auditConfig.questions.find(x=>x.id===name);
-if(!q) return;
-const selOpt=q.options.find(o=>o.text===e.target.value);
-const cont=document.getElementById(`upload-container-${name}`);
-if(cont){
-if(selOpt && selOpt.triggerUpload) cont.classList.remove('hidden');
-else cont.classList.add('hidden');
-}
-},
+  // update the % text
+  textEl.textContent = `${score}%`;
 
-calculateScore() {
-let total=0, max=0;
-this.getVisibleQuestions().forEach(q=>{
-if(q.weight>0){
-max+=q.weight;
-const ans=this.answers[q.id];
-if(!ans) return;
-if(q.scoreLogic){
-total+=q.scoreLogic(ans.answer);
-} else if(q.options){
-let optScore=0;
-if(q.type==='checkbox'){
-if(Array.isArray(ans.answer)){
-ans.answer.forEach(a=>{
-const o=q.options.find(x=>x.text===a);
-if(o) optScore+=o.score;
-});
-}
-} else {
-const o=q.options.find(x=>x.text===ans.answer);
-if(o) optScore=o.score;
-}
-let maxOpt=q.type==='checkbox'
-? q.options.reduce((s,o)=>s+(o.score>0?o.score:0),0)
-: Math.max(...q.options.map(o=>o.score||0));
-if(maxOpt>0) total+=(optScore/maxOpt)*q.weight;
-}
-}
-});
-return max>0?Math.round((total/max)*100):100;
-},
+  // pick color + message based on score
+  let color, msg, msgClass;
+  if (score <= 50) {
+    color    = '#dc2626';                // red-600
+    msg      = 'Low compliance – seek legal advice.';
+    msgClass = 'text-red-600';
+  } else if (score <= 90) {
+    color    = '#f59e0b';                // amber-500
+    msg      = 'Moderate compliance – consider tightening up some areas.';
+    msgClass = 'text-orange-600';
+  } else {
+    color    = '#16a34a';                // green-600
+    msg      = 'Solid compliance – well done!';
+    msgClass = 'text-green-600';
+  }
 
-showResults() {
-this.formContainer.classList.add('hidden');
-this.progressContainer.classList.add('hidden');
-this.resultsScreen.classList.remove('hidden');
+  // set the gauge fill and message
+  gauge.style.setProperty('--gauge-color', color);
+  gauge.style.setProperty('--progress', `${score}%`);
+  messageEl.textContent = msg;
+  messageEl.className = `text-lg font-medium ${msgClass} mb-8`;
 
-const score = this.calculateScore() // e.g. 9
-const gauge = document.getElementById('radial-progress');
-const textEl = document.getElementById('radial-progress-text');
-const messageEl = document.getElementById('compliance-message');
-
-// update the % text
-textEl.textContent = `${score}%`;
-
-// pick color + message based on score
-let color, msg, msgClass;
-if (score <= 50) {
-color    = '#dc2626';                // red-600
-msg      = 'Low compliance – seek legal advice.';
-msgClass = 'text-red-600';
-} else if (score <= 90) {
-color    = '#f59e0b';                // amber-500
-msg      = 'Moderate compliance – consider tightening up some areas.';
-msgClass = 'text-orange-600';
-} else {
-color    = '#16a34a';                // green-600
-msg      = 'Solid compliance – well done!';
-msgClass = 'text-green-600';
-}
-
-// set the gauge fill and message
-gauge.style.setProperty('--gauge-color', color);
-gauge.style.setProperty('--progress', `${score}%`);
-messageEl.textContent = msg;
-messageEl.className = `text-lg font-medium ${msgClass} mb-8`;
-
-// show AI section if enabled
-if (appConfig.enableAiRecommendations) {
-this.aiSection.classList.remove('hidden');
-}
+  // show AI section if enabled
+  if (appConfig.enableAiRecommendations) {
+    this.aiSection.classList.remove('hidden');
+  }
 },
 
 
-async getAiRecommendations() {
-this.getAiRecommendationsBtn.classList.add('hidden');
-this.aiRecommendationsContainer.classList.remove('hidden');
-this.aiLoader.classList.remove('hidden');
-this.aiContent.classList.add('hidden');
+      async getAiRecommendations() {
+        this.getAiRecommendationsBtn.classList.add('hidden');
+        this.aiRecommendationsContainer.classList.remove('hidden');
+        this.aiLoader.classList.remove('hidden');
+        this.aiContent.classList.add('hidden');
 
-let promptSummary="The user's audit answers are as follows:\n";
-for(const k in this.answers){
-const a=this.answers[k];
-const t=Array.isArray(a.answer)?a.answer.join(', '):a.answer;
-if(t) promptSummary+=`- ${a.question}: ${t}\n`;
-}
+        let promptSummary="The user's audit answers are as follows:\n";
+        for(const k in this.answers){
+          const a=this.answers[k];
+          const t=Array.isArray(a.answer)?a.answer.join(', '):a.answer;
+          if(t) promptSummary+=`- ${a.question}: ${t}\n`;
+        }
 
-const prompt=`
+        const prompt=`
 You are a helpful legal tech assistant for a law firm named 'Silicon Law'. A potential client has just completed a legal compliance audit. Their final compliance score is ${this.calculateScore()}%.
 
 1. Provide a brief, actionable Top 3 Legal Risks summary as an HTML <ul>.
@@ -661,133 +627,112 @@ You are a helpful legal tech assistant for a law firm named 'Silicon Law'. A pot
 2. Provide Next Steps in another <ul>.
 
 3. Then add a Schedule a Consultation section <h4>Schedule a Consultation</h4> with a <ul>:
-  <li><strong>Let's discuss these findings in detail and tailor a compliance program to your specific needs.</strong></li>
-  <li><strong>Focus on Quick Wins:</strong> We can help you implement basic data security measures, update standard contract templates, and review key employment policies to address immediate gaps.</li>
-  <li><strong>Prioritize Remediation:</strong> We'll work with you to create a phased plan to address compliance gaps, prioritizing those that pose the greatest legal and financial risk.</li>
+   <li><strong>Let's discuss these findings in detail and tailor a compliance program to your specific needs.</strong></li>
+   <li><strong>Focus on Quick Wins:</strong> We can help you implement basic data security measures, update standard contract templates, and review key employment policies to address immediate gaps.</li>
+   <li><strong>Prioritize Remediation:</strong> We'll work with you to create a phased plan to address compliance gaps, prioritizing those that pose the greatest legal and financial risk.</li>
 
 4. Close with:
-  <p><em>We understand that navigating legal compliance can be complex. Silicon Law is here to provide the guidance and support you need. We're confident that with a focused approach, you can significantly improve your compliance posture and protect your business.</em></p>
-  <p><strong>Best Regards,</strong></p>
-  <p><strong>Silicon Law</strong></p>
+   <p><em>We understand that navigating legal compliance can be complex. Silicon Law is here to provide the guidance and support you need. We're confident that with a focused approach, you can significantly improve your compliance posture and protect your business.</em></p>
+   <p><strong>Best Regards,</strong></p>
+   <p><strong>Silicon Law</strong></p>
 
 Do not wrap in markdown or include a Subject line—return only the HTML body.
 
 ${promptSummary}
 `;
 
-try {
-const res=await fetch('/.netlify/functions/get-ai-recommendations',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}]})
-});
-if(!res.ok) throw new Error(`Server error ${res.status}`);
-const result=await res.json();
-const part=result.candidates?.[0]?.content?.parts?.[0]||'';
-let raw=typeof part==='string'?part:part.text||'';
-raw=raw.replace(/```(?:html)?/g,'').replace(/^Subject:.*\n/i,'').trim();
+        try {
+          const res=await fetch('/.netlify/functions/get-ai-recommendations',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}]})
+          });
+          if(!res.ok) throw new Error(`Server error ${res.status}`);
+          const result=await res.json();
+          const part=result.candidates?.[0]?.content?.parts?.[0]||'';
+          let raw=typeof part==='string'?part:part.text||'';
+          raw=raw.replace(/```(?:html)?/g,'').replace(/^Subject:.*\n/i,'').trim();
 
-this.aiContent.innerHTML=`
-           <h3 class="text-xl font-semibold mb-4">Your AI-Powered Summary & Recommendations</h3>
-           ${raw}
-         `;
-} catch(err){
-console.error("Error fetching AI recommendations:",err);
-this.aiContent.innerHTML=`<p class="text-red-500">Sorry, we couldn't generate recommendations at this time. Please try again later.</p>`;
-} finally {
-this.aiLoader.classList.add('hidden');
-this.aiContent.classList.remove('hidden');
-}
+          this.aiContent.innerHTML=`
+            <h3 class="text-xl font-semibold mb-4">Your AI-Powered Summary & Recommendations</h3>
+            ${raw}
+          `;
+        } catch(err){
+          console.error("Error fetching AI recommendations:",err);
+          this.aiContent.innerHTML=`<p class="text-red-500">Sorry, we couldn't generate recommendations at this time. Please try again later.</p>`;
+        } finally {
+          this.aiLoader.classList.add('hidden');
+          this.aiContent.classList.remove('hidden');
+        }
+      },
+
+      submitLead() {
+        const payload={
+          user_name:`${this.answers.firstName.answer} ${this.answers.lastName.answer}`,
+          user_email:this.answers.email.answer,
+          email:this.answers.email.answer,
+          company_name:this.answers.companyName.answer,
+          phone_number:this.answers.phone.answer||'',
+          compliance_score:this.calculateScore(),
+          full_summary:Object.entries(this.answers)
+            .map(([k,v])=>`${v.question}: ${Array.isArray(v.answer)?v.answer.join(', '):v.answer}`)
+            .join('\n')
+        };
+
+        fetch('/.netlify/functions/send-email',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify(payload)
+        })
+  .then(response => {
+    // Don't show any user-facing pop-ups for email status
+    // console.log('Email send response:', response.status);
+    return response.json().catch(() => ({}));
+  })
+  .catch(error => {
+    console.error('Error submitting lead:', error);
+    // If you still want to show errors, uncomment:
+    // this.showMessage('Could not send emails. Please try again later.', 'error');
+  });
 },
 
+      showMessage(message,type='error'){
+        this.messageText.textContent=message;
+        this.messageBox.className=`fixed top-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transition-opacity duration-300 ${type==='error'?'bg-red-500':'bg-green-500'}`;
+        this.messageBox.classList.remove('hidden');
+        setTimeout(()=>this.messageBox.classList.add('hidden'),3000);
+      },
 
-// ① make it async so we can await toBase64()
-async submitLead() {
-  console.log('🔔 submitLead() called — fileUploads:', this.fileUploads);
-// build the same payload as before…
-const payload = {
-user_name: `${this.answers.firstName.answer} ${this.answers.lastName.answer}`,
-user_email: this.answers.email.answer,
-email: this.answers.email.answer,
-company_name: this.answers.companyName.answer,
-phone_number: this.answers.phone.answer || '',
-compliance_score: this.calculateScore(),
-full_summary: Object
-.entries(this.answers)
-.map(([k,v]) =>
-`${v.question}: ${Array.isArray(v.answer) ? v.answer.join(', ') : v.answer}`
-)
-.join('\n'),
-};
+      restart(){
+        this.currentQuestionIndex=0;
+        this.answers={};
+        this.resultsScreen.classList.add('hidden');
+        this.formContainer.classList.remove('hidden');
+        this.progressContainer.classList.remove('hidden');
+        this.aiSection.classList.add('hidden');
+        this.getAiRecommendationsBtn.classList.remove('hidden');
+        this.aiRecommendationsContainer.classList.add('hidden');
+        this.aiContent.innerHTML='';
+        this.buildForm();
+        const screens=this.formContainer.querySelectorAll('.form-screen');
+        screens.forEach((s,i)=>s.classList.toggle('hidden',i!==0));
+        this.updateProgress();
+      },
 
- console.log('🔔 payload:', payload);
-// ② now attach files:
-payload.attachments = [];
-for (let [qid, file] of Object.entries(this.fileUploads)) {
-// toBase64 returns "data:…;base64,XXXXX"
-const data = await this.toBase64(file);
-payload.attachments.push({
-name: file.name,
-data
-});
-}
+      attachEventListeners(){
+        this.formContainer.addEventListener('click',e=>{ if(e.target.dataset.action) this.handleNavigation(e); });
+        this.formContainer.addEventListener('change',e=>{
+          if(e.target.type==='file') this.handleFileUpload(e);
+          if(e.target.type==='radio') this.handleConditionalUpload(e);
+        });
+        this.restartBtn.addEventListener('click',()=>this.restart());
+        this.getAiRecommendationsBtn.addEventListener('click',()=>this.getAiRecommendations());
+      }
+    };
 
-console.log('▶ payload going to Netlify:', JSON.stringify(payload, null, 2));
-// send exactly the same JSON to your Netlify function
-fetch('/.netlify/functions/send-email', {
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify(payload)
-})
-.then(response => {
-// …
-return response.json().catch(() => ({}));
-})
-.catch(error => {
-console.error('Error submitting lead:', error);
-});
-},
-
-
-
-
-showMessage(message,type='error'){
-this.messageText.textContent=message;
-this.messageBox.className=`fixed top-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transition-opacity duration-300 ${type==='error'?'bg-red-500':'bg-green-500'}`;
-this.messageBox.classList.remove('hidden');
-setTimeout(()=>this.messageBox.classList.add('hidden'),3000);
-},
-
-restart(){
-this.currentQuestionIndex=0;
-this.answers={};
-this.resultsScreen.classList.add('hidden');
-this.formContainer.classList.remove('hidden');
-this.progressContainer.classList.remove('hidden');
-this.aiSection.classList.add('hidden');
-this.getAiRecommendationsBtn.classList.remove('hidden');
-this.aiRecommendationsContainer.classList.add('hidden');
-this.aiContent.innerHTML='';
-this.buildForm();
-const screens=this.formContainer.querySelectorAll('.form-screen');
-screens.forEach((s,i)=>s.classList.toggle('hidden',i!==0));
-this.updateProgress();
-},
-
-attachEventListeners(){
-this.formContainer.addEventListener('click',e=>{ if(e.target.dataset.action) this.handleNavigation(e); });
-this.formContainer.addEventListener('change',e=>{
-if(e.target.type==='file') this.handleFileUpload(e);
-if(e.target.type==='radio') this.handleConditionalUpload(e);
-});
-this.restartBtn.addEventListener('click',()=>this.restart());
-this.getAiRecommendationsBtn.addEventListener('click',()=>this.getAiRecommendations());
-}
-};
-
-app.init();
-});
-</script>
+    app.init();
+  });
+  </script>
 
 </body>
 </html>
