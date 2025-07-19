@@ -63,17 +63,13 @@ console.log('📎 attachments received in function:', attachments.length, attach
     full_summary,
   };
 
-  // 6) Map incoming attachments into EmailJS format
-  //    EmailJS wants: { filename, content (Base64), encoding: 'base64' }
-  const emailJsAttachments = attachments.map(att => {
-    // att.data is like "data:application/pdf;base64,JVBERi0xLjcKJc..."
-    const [, base64] = att.data.split(',');
-    return {
-      filename: att.name,
-      content:  base64,
-      encoding: 'base64'
-    };
-  });
+    // 6) Map incoming attachments into EmailJS format
+  //    Pass full data-URI + filename and let the SDK infer mime.
+  const emailJsAttachments = attachments.map(att => ({
+    name: att.name,
+    data: att.data
+  }));
+
 
   try {
     // → Send to your firm, including attachments
